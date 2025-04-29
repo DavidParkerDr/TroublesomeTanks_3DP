@@ -18,23 +18,12 @@ namespace Tankontroller.World.Particles
     }
     public class TrackSystem
     {
-        private static Texture2D m_Texture;
-        private static Rectangle m_Rectangle;
-
-        private static TrackSystem m_Instance = null;
+        private static readonly Texture2D m_Texture = Tankontroller.Instance().CM().Load<Texture2D>("track");
+        private static readonly TrackSystem m_Instance = new TrackSystem();
 
         private Track[] m_Tracks;
         private const int MAX_TRACKS = 250;
         private int m_NextTrack;
-
-        public static void SetupStaticMembers(Texture2D pTexture)
-        {
-            int trackWidth = 20;
-            int trackHeight = 10;
-            m_Texture = pTexture;
-            m_Rectangle = new Rectangle(0, 0, trackWidth, trackHeight);
-            m_Instance = new TrackSystem();
-        }
 
         public static TrackSystem GetInstance()
         {
@@ -43,10 +32,15 @@ namespace Tankontroller.World.Particles
         private TrackSystem()
         {
             m_Tracks = new Track[MAX_TRACKS];
+            Reset();
+        }
+
+        public void Reset()
+        {
             m_NextTrack = 0;
-            for(int i = 0; i < MAX_TRACKS; i++)
+            for (int i = 0; i < MAX_TRACKS; i++)
             {
-                m_Tracks[i] = new Track(Vector2.Zero, 0f, Color.Black/*DGS.COLOUR_GROUND*/);
+                m_Tracks[i] = new Track(Vector2.Zero, 0f, Color.Black);
             }
         }
 
@@ -56,7 +50,7 @@ namespace Tankontroller.World.Particles
             m_Tracks[m_NextTrack].Position = pPosition;
             m_Tracks[m_NextTrack].Rotation = pRotation;
             m_NextTrack++;
-            if(m_NextTrack == MAX_TRACKS)
+            if (m_NextTrack == MAX_TRACKS)
             {
                 m_NextTrack = 0;
             }
@@ -64,7 +58,7 @@ namespace Tankontroller.World.Particles
 
         public void Draw(SpriteBatch pBatch)
         {
-            for(int i = 0; i < MAX_TRACKS; i++)
+            for (int i = 0; i < MAX_TRACKS; i++)
             {
                 pBatch.Draw(m_Texture, m_Tracks[i].Position, null, m_Tracks[i].Colour, m_Tracks[i].Rotation, new Vector2(m_Texture.Width / 2, m_Texture.Height / 2), 1f, SpriteEffects.None, 0.0f);
             }

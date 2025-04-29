@@ -1,136 +1,221 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Tankontroller.Managers;
 using Tankontroller.World.Particles;
+using Tankontroller.World.Pickups;
+
+public enum PickupType
+{
+    HEALTH,
+    EMP,
+    MINE,
+    BOUNCY_BULLET
+}
 
 namespace Tankontroller.World
 {
-    // this class is a container for the game state
     public class TheWorld
     {
-        private Random rand = new Random();
+        private static readonly Texture2D mPixelTexture = Tankontroller.Instance().CM().Load<Texture2D>("block");
+        private static readonly Texture2D m_BulletTexture = Tankontroller.Instance().CM().Load<Texture2D>("circle");
+        private static readonly Color GROUND_COLOUR = DGS.Instance.GetColour("COLOUR_GROUND");
+        private static readonly bool PICKUP_SPAWN = DGS.Instance.GetBool("PICKUPS_ON");
+        private static readonly float PICKUP_SPAWN_TIME = DGS.Instance.GetFloat("PICKUP_SPAWN_RATE");
+        private static readonly bool HEALTH_PICKUP = DGS.Instance.GetBool("ADD_PICKUP_HEALTH");
+        private static readonly bool EMP_PICKUP = DGS.Instance.GetBool("ADD_PICKUP_EMP");
+        private static readonly bool MINE_PICKUP = DGS.Instance.GetBool("ADD_PICKUP_MINE");
+        private static readonly bool BOUNCY_BULLET_PICKUP = DGS.Instance.GetBool("ADD_PICKUP_BOUNCYBULLET");
 
-        private List<Tank> m_Tanks = new List<Tank>(); 
+        private Rectangle mPlayArea;
+        private Rectangle mPlayAreaOutline;
+        private List<Tank> mTanks = new List<Tank>();
+        private List<RectWall> mWalls;
+        private List<Vector2> mPickupSpawnPositions = new List<Vector2>();
+        private List<Pickup> mPickups = new List<Pickup>();
+        private float mPickupSpawnTimer = PICKUP_SPAWN_TIME;
+        private List<PickupType> mActivatedPickups = new List<PickupType>();
 
-        public void AddTank(Tank pTank)
+        public Rectangle PlayArea { get { return mPlayArea; } }
+
+        public TheWorld(Rectangle pPlayArea, List<RectWall> pWalls, List<Tank> pTanks, List<Vector2> pPickupSpawnPositions)
         {
-            m_Tanks.Add(pTank);
+            mWalls = pWalls;
+            mTanks = pTanks;
+            mPlayArea = pPlayArea;
+            mPickupSpawnPositions = pPickupSpawnPositions;
+            mPlayAreaOutline = new Rectangle(mPlayArea.X - 5, mPlayArea.Y - 5, mPlayArea.Width + 10, mPlayArea.Height + 10);
+            CheckActivatedPickups();
         }
-        public Tank GetTank(int pTankIndex)
+
+        public List<Tank> GetTanksForPlayers(int pPlayerCount)
         {
-            if(m_Tanks.Count > pTankIndex)
+            if (mTanks.Count >= pPlayerCount && pPlayerCount > 0)
             {
-                return m_Tanks[pTankIndex];
+                mTanks = mTanks.GetRange(0, (int)pPlayerCount);
+                return mTanks;
             }
             return null;
         }
 
-        public List<RectWall> Walls { get; private set; }
-
-        public TheWorld(Rectangle playArea, List<RectWall> pWalls)
+        public void AddPickup()
         {
-            Walls = pWalls;
+            mPickupSpawnTimer = PICKUP_SPAWN_TIME;
+            if (PICKUP_SPAWN && mActivatedPickups.Count() > 0)
+            {
+                int randPos = new Random().Next(0, mPickupSpawnPositions.Count());
+                //Checks for any pickups at this position to prevent spawn overlap
+                foreach (Pickup p in mPickups)
+                {
+                    if (p.m_Position == mPickupSpawnPositions[randPos])
+                    {
+                        return;
+                    }
+                }
+
+                int randPickup = new Random().Next(0, mActivatedPickups.Count());
+                if (mActivatedPickups[randPickup] == PickupType.HEALTH)
+                {
+                    HealthPickup mHealthPickup = new HealthPickup(mPickupSpawnPositions[randPos]);
+                    mPickups.Add(mHealthPickup);
+                }
+                else if (mActivatedPickups[randPickup] == PickupType.EMP)
+                {
+                    EMPPickup mEMPPickup = new EMPPickup(mPickupSpawnPositions[randPos]);
+                    mPickups.Add(mEMPPickup);
+                }
+                else if (mActivatedPickups[randPickup] == PickupType.MINE)
+                {
+                    MinePickup mMinePickup = new MinePickup(mPickupSpawnPositions[randPos]);
+                    mPickups.Add(mMinePickup);
+                }
+                else if (mActivatedPickups[randPickup] == PickupType.BOUNCY_BULLET)
+                {
+                    BouncyBulletPickup mBouncyBulletPickup = new BouncyBulletPickup(mPickupSpawnPositions[randPos]);
+                    mPickups.Add(mBouncyBulletPickup);
+                }
+            }
         }
 
-        public void CollideAllTheThingsWithPlayArea(Rectangle pRectangle)
+        public void CheckActivatedPickups()
         {
-            for (int i = 0; i < m_Tanks.Count; i++)
+            foreach (PickupType p in Enum.GetValues(typeof(PickupType)))
             {
-                m_Tanks[i].CollideWithPlayArea(pRectangle);
-            }
-
-            Vector2 collisionNormal;
-
-            for (int tankIndex = 0; tankIndex < m_Tanks.Count; tankIndex++)
-            {
-                List<Bullet> bulletList = m_Tanks[tankIndex].GetBulletList();
-                for (int i = bulletList.Count - 1; i >= 0; --i)
+                if(p == PickupType.HEALTH && HEALTH_PICKUP)
                 {
-                    if (bulletList[i].Collide(pRectangle, out collisionNormal))
-                    {
-                        ExplosionInitialisationPolicy explosion = new ExplosionInitialisationPolicy(bulletList[i].Position, collisionNormal, m_Tanks[tankIndex].Colour());
-                        ParticleManager.Instance().InitialiseParticles(explosion, 100);
-                        bulletList.RemoveAt(i);
-                    }
-                }            
+                    mActivatedPickups.Add(p);
+                }
+                else if (p == PickupType.EMP && EMP_PICKUP)
+                {
+                    mActivatedPickups.Add(p);
+                }
+                else if (p == PickupType.MINE && MINE_PICKUP)
+                {
+                    mActivatedPickups.Add(p);
+                }
+                else if (p == PickupType.BOUNCY_BULLET && BOUNCY_BULLET_PICKUP)
+                {
+                    mActivatedPickups.Add(p);
+                }
             }
         }
 
         public void Update(float pSeconds)
         {
+            mPickupSpawnTimer -= pSeconds;
+            if(mPickupSpawnTimer <= 0) { AddPickup(); }
             Particles.ParticleManager.Instance().Update(pSeconds);
 
-            Vector2 collisionNormal;
-
-            for (int tankIndex = 0; tankIndex < m_Tanks.Count; tankIndex++)
+            // Check collisions for each tank
+            for (int tankIndex = 0; tankIndex < mTanks.Count; tankIndex++)
             {
-                List<Bullet> bulletList = m_Tanks[tankIndex].GetBulletList();
-                for (int i = bulletList.Count - 1; i >= 0; --i)
+                
+                mTanks[tankIndex].Update(pSeconds);
+
+                mTanks[tankIndex].CheckBullets(mTanks, mPlayArea, mWalls);
+
+                // Pickup collision
+                foreach (Pickup p in mPickups)
                 {
-                    bool collided = false;
-                    bulletList[i].Update(pSeconds);
-                    for (int tankIndex2 = 0; tankIndex2 < m_Tanks.Count; tankIndex2++)
+                    // This is to avoid any dead tanks from picking up a pickup
+                    if (mTanks[tankIndex].Health() == 0)
                     {
-                        if(tankIndex == tankIndex2)
-                        {
-                            continue;
-                        }
-                        if (bulletList[i].Collide(m_Tanks[tankIndex2], out collisionNormal))
-                        {
-                            ExplosionInitialisationPolicy explosion = new ExplosionInitialisationPolicy(bulletList[i].Position, collisionNormal, m_Tanks[tankIndex].Colour());
-                            Particles.ParticleManager.Instance().InitialiseParticles(explosion, 100);
-                            m_Tanks[tankIndex2].TakeDamage();
-                            int clang = rand.Next(1, 4);
-                            string tankClang = "Sounds/Tank_Clang" + clang;
-                            Microsoft.Xna.Framework.Audio.SoundEffectInstance tankClangSound = Tankontroller.Instance().GetSoundManager().GetSoundEffectInstance(tankClang);
-                            tankClangSound.Play();
-                            collided = true;
-                            break;
-                        }
-                        
+                        continue;
                     }
-                    foreach (RectWall wall in Walls)
+                    else if (p.PickUpCollision(mTanks[tankIndex]))
                     {
-                        if (wall.Collide(bulletList[i], out collisionNormal))
-                        {
-                            ExplosionInitialisationPolicy explosion = new ExplosionInitialisationPolicy(bulletList[i].Position, collisionNormal, m_Tanks[tankIndex].Colour());
-                            Particles.ParticleManager.Instance().InitialiseParticles(explosion, 100);
-                            collided = true;
-                            break;
-                        }
-                    }
-                    if (collided)
-                    {
-                        bulletList.RemoveAt(i);
+                        mPickups.Remove(p);
+                        break;
                     }
                 }
+
+                // Wall collisions
+                foreach (RectWall wall in mWalls)
+                {
+                    Rectangle wallRect = wall.Rectangle;
+
+                    // tank collision using collision manager
+                    if (CollisionManager.Collide(mTanks[tankIndex], wallRect, false))
+                        mTanks[tankIndex].PutBack();
+                }
+
+                // Collisions with other tanks
+                for (int i = 0; i < mTanks.Count; i++)
+                {
+                    if (tankIndex == i) // Skip collision with self
+                    {
+                        continue;
+                    }
+                    // tank against tanks using collision manager
+                    if (CollisionManager.Collide(mTanks[tankIndex], mTanks[i]))
+                        mTanks[tankIndex].PutBack();
+                }
+
+                // Collisions with the play area
+                if (CollisionManager.Collide(mTanks[tankIndex], mPlayArea, true)) // True tp check inside the play area
+                    mTanks[tankIndex].PutBack();
+            }
+        }
+
+        public void Draw(SpriteBatch pSpriteBatch)
+        {
+            pSpriteBatch.Draw(mPixelTexture, mPlayAreaOutline, Color.Black);
+            pSpriteBatch.Draw(mPixelTexture, mPlayArea, GROUND_COLOUR);
+
+            TrackSystem.GetInstance().Draw(pSpriteBatch);
+
+            foreach (Pickup p in mPickups)
+            {
+                p.Draw(pSpriteBatch);
             }
 
-            foreach(RectWall w in Walls)
+            ParticleManager.Instance().Draw(pSpriteBatch);
+
+            //Draws the tanks (on top of tracks but below particles)
+            foreach (Tank t in mTanks)
             {
-                foreach(Tank t in m_Tanks)
-                {
-                    if (w.Collide(t))
-                    {
-                        t.PutBack();
-                    }
-                }
+                t.DrawBullets(pSpriteBatch, m_BulletTexture);
             }
 
-            for(int i = 0; i < m_Tanks.Count; i++)
+            //Draws the tanks
+            foreach (Tank t in mTanks)
             {
-                for(int j = i+1; j < m_Tanks.Count; j++)
-                {
-                    if(m_Tanks[i].Collide(m_Tanks[j]))
-                    {
-                        m_Tanks[i].PutBack();
-                        m_Tanks[j].PutBack();
-                    }
-                }
+                t.Draw(pSpriteBatch);
+            }
+
+            //Draws the walls
+            foreach (RectWall w in mWalls)
+            {
+                w.DrawOutlines(pSpriteBatch);
+            }
+            foreach (RectWall w in mWalls)
+            {
+                w.Draw(pSpriteBatch);
             }
         }
     }

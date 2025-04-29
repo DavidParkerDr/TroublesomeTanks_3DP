@@ -16,7 +16,7 @@ namespace Tankontroller
             using (var game = (Tankontroller)Tankontroller.Instance())
             {
                 game.Run();
-                game.TurnOffControllers();
+                game.GetControllerManager().DisconnectAllControllers();
             }
         }
     }

@@ -20,12 +20,12 @@ namespace Tankontroller
             mStrings = new Dictionary<string, string>();
 
             LoadFile("Content/DGS.txt");
-            
         }
         public static DGS Instance
         {
-            get {
-                if(mInstance == null)
+            get
+            {
+                if (mInstance == null)
                 {
                     mInstance = new DGS();
                 }
@@ -59,7 +59,7 @@ namespace Tankontroller
             using (StreamReader reader = new StreamReader(pFilePath))
             {
                 string line;
-                while((line = reader.ReadLine())!= null)
+                while ((line = reader.ReadLine()) != null)
                 {
                     if (string.IsNullOrWhiteSpace(line))
                     {
@@ -67,7 +67,7 @@ namespace Tankontroller
                     }
                     // line contains text
                     line = line.Trim();
-                    if(line.Substring(0,2) == "//")
+                    if (line.Substring(0, 2) == "//")
                     {
                         //line is a comment, skip
                         continue;
@@ -84,17 +84,17 @@ namespace Tankontroller
             string variableString = "";
             string valueString = "";
             int count = 0;
-            foreach(string token in tokens)
+            foreach (string token in tokens)
             {
-                if(String.IsNullOrEmpty(token))
+                if (String.IsNullOrEmpty(token))
                 {
                     continue;
                 }
-                if(count == 0)
+                if (count == 0)
                 {
                     typeString = token.Trim();
                 }
-                else if(count == 1)
+                else if (count == 1)
                 {
                     variableString = token.Trim();
                 }
@@ -104,7 +104,7 @@ namespace Tankontroller
                 }
                 count++;
             }
-            if(typeString == "float")
+            if (typeString == "float")
             {
                 float value = float.Parse(valueString);
                 AddFloat(variableString, value);
@@ -136,10 +136,6 @@ namespace Tankontroller
             {
                 AddString(variableString, valueString);
             }
-
-
-
-
         }
 
         private Dictionary<string, bool> mBools;
@@ -188,8 +184,5 @@ namespace Tankontroller
             }
             return Color.Black;
         }
-       
-
-
     }
 }

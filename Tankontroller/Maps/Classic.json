@@ -1,0 +1,22 @@
+{
+  "Walls": [
+    { "Texture": "block", "Position": [ "33.5", "34" ], "Size": [ "2", "33" ] },
+    { "Texture": "block", "Position": [ "64.5", "34" ], "Size": [ "2", "33" ] },
+    { "Texture": "block", "Position": [ "66", "47.5" ], "Size": [ "34", "5" ] },
+    { "Texture": "block", "Position": [ "0", "47.5" ], "Size": [ "34", "5" ] },
+    { "Texture": "block", "Position": [ "49", "0" ], "Size": [ "2", "33" ] },
+    { "Texture": "block", "Position": [ "49", "67" ], "Size": [ "2", "33" ] }
+  ],
+  "Tanks": [
+    { "Position": [ "10", "10" ], "Rotation": "0" },
+    { "Position": [ "90", "10" ], "Rotation": "180" },
+    { "Position": [ "10", "90" ], "Rotation": "0" },
+    { "Position": [ "90", "90" ], "Rotation": "180" }
+  ],
+  "Pickups": [
+    { "Position": [ "30", "30" ] },
+    { "Position": [ "30", "70" ] },
+    { "Position": [ "70", "30" ] },
+    { "Position": [ "70", "70" ] }
+  ]
+}

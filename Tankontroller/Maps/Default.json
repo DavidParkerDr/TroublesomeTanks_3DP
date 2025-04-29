@@ -1,0 +1,35 @@
+{
+  "Walls": [
+    { "Texture": "block", "Position": [ "8", "20" ], "Size": [ "2", "20" ] },
+    { "Texture": "block", "Position": [ "8", "20" ], "Size": [ "8", "5" ] },
+    { "Texture": "block", "Position": [ "8", "60" ], "Size": [ "2", "20" ] },
+    { "Texture": "block", "Position": [ "8", "75" ], "Size": [ "8", "5" ] },
+    { "Texture": "block", "Position": [ "90", "20" ], "Size": [ "2", "20" ] },
+    { "Texture": "block", "Position": [ "84", "20" ], "Size": [ "7", "5" ] },
+    { "Texture": "block", "Position": [ "90", "60" ], "Size": [ "2", "20.1" ] },
+    { "Texture": "block", "Position": [ "84", "75" ], "Size": [ "7", "5" ] },
+    { "Texture": "block", "Position": [ "29", "33" ], "Size": [ "2", "34" ] },
+    { "Texture": "block", "Position": [ "69", "33" ], "Size": [ "2", "34" ] },
+    { "Texture": "block", "Position": [ "21", "47.5" ], "Size": [ "9", "5" ] },
+    { "Texture": "block", "Position": [ "70", "47.5" ], "Size": [ "9", "5" ] },
+    { "Texture": "block", "Position": [ "37.5", "20" ], "Size": [ "25", "5" ] },
+    { "Texture": "block", "Position": [ "37.5", "75" ], "Size": [ "25", "5" ] }
+  ],
+  "Tanks": [
+    { "Position": [ "8", "50" ], "Rotation": "0" },
+    { "Position": [ "92", "50" ], "Rotation": "180" },
+    { "Position": [ "50", "7" ], "Rotation": "90" },
+    { "Position": [ "50", "93" ], "Rotation": "270" }
+  ],
+  "Pickups": [
+    { "Position": [ "27", "40" ] },
+    { "Position": [ "27", "60" ] },
+    { "Position": [ "73", "40" ] },
+    { "Position": [ "73", "60" ] },
+    { "Position": [ "12", "30" ] },
+    { "Position": [ "12", "70" ] },
+    { "Position": [ "88", "30" ] },
+    { "Position": [ "88", "70" ] },
+    { "Position": [ "50", "50" ] }
+  ]
+}

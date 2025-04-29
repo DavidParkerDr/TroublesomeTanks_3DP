@@ -1,183 +1,180 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
-using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Tankontroller.Controller;
+using Tankontroller.GUI;
 using Tankontroller.World;
 
 namespace Tankontroller
 {
     public class Player
     {
+        public static readonly float TRACK_DEPLETION_RATE = DGS.Instance.GetFloat("TRACK_DEPLETION_RATE");
+        public static readonly float BULLET_CHARGE_DEPLETION = DGS.Instance.GetFloat("BULLET_CHARGE_DEPLETION");
+        public static readonly float CHARGE_AMOUNT = DGS.Instance.GetFloat("CHARGE_AMOUNT");
+
         public TeamGUI GUI { get; private set; }
         public Tank Tank { get; private set; }
         public IController Controller { get; private set; }
         public Color Colour { get; private set; }
 
-        public List<Bullet> Bullets { get; private set; }
+        private int mCannonJackIndex = -1; // Due to flickering of the controller, we need to keep track of the last jack used to fire the cannon
 
-        public Player(Color pColour, IController pController, 
-            float pTankXPosition, float pTankYPosition, float pTankRotation, float pTankScale,
-            Texture2D pHealthBar1, Texture2D pHealthBar2, Texture2D pHealthBar3, Texture2D pHealthBar4, Texture2D pHealthBar5, Texture2D pHealthBar6, 
-            Rectangle pRectangle, bool pIsOnLeft)
+        // Variables to control Controller LED flashing when in EMP shockwave
+        private const float FLASH_TIME = 0.5f;
+        private readonly Color FLASH_COLOUR = new Color(0, 0, 0);
+        private float mFlashTimer = FLASH_TIME;
+        private bool mFlashSet = false;
+
+        public Player(IController pController, Avatar pAvatar)
         {
-            Colour = pColour;
             Controller = pController;
-            Controller.SetColour(pColour);
-            Bullets = new List<Bullet>();
-            Tank = new Tank(pTankXPosition, pTankYPosition, pTankRotation, Colour, Bullets, pTankScale);
-            GUI = new TeamGUI(pHealthBar1, pHealthBar2, pHealthBar3, pHealthBar4, pHealthBar5, pHealthBar6, pRectangle, Tank, pIsOnLeft, Controller, Colour);
+            GUI = new TeamGUI(pAvatar, new Rectangle(), Controller);
+            Colour = pAvatar.GetColour();
         }
+
+        public void SetController(IController pController)
+        {
+            Controller = pController;
+        }
+
+        public void GamePreparation(Tank pTank, Rectangle pRectangle)
+        {
+            Tank = pTank;
+            Controller.SetColour(Colour);
+            Tank.SetColour(Colour);
+            GUI.Reposition(pRectangle);
+        }
+
         public void Reset()
         {
             Controller.ResetJacks();
-            
         }
+
         public bool DoTankControls(float pSeconds)
         {
+            mFlashTimer -= pSeconds;
+            if (mFlashSet && mFlashTimer <= 0.0f)
+            {
+                mFlashSet = false;
+                mFlashTimer = FLASH_TIME;
+                Controller.SetColour(Colour);
+            }
+
+            // Deplete charge if player is inside EMP shockwave
+            bool insideShockwave = Tank.IsInsideShockwave();
+            if (insideShockwave)
+            {
+                if (!mFlashSet && mFlashTimer <= 0.0f)
+                {
+                    mFlashSet = true;
+                    mFlashTimer = FLASH_TIME;
+                    Controller.SetColour(FLASH_COLOUR);
+                }
+                foreach (Control control in Enum.GetValues<Control>())
+                {
+                    if (control == Control.NONE) continue; // Shockwave should only affect controls that plugged in
+                    Controller.DepleteCharge(control, TRACK_DEPLETION_RATE * 3.0f * pSeconds);
+                }
+            }
+
             bool tankMoved = false;
             if (Tank.Health() > 0)
             {
-                
-                if (Controller.IsPressedWithCharge(Control.LEFT_TRACK_FORWARDS))
+                bool leftTrackForward = Controller.IsPressedWithCharge(Control.LEFT_TRACK_FORWARDS);
+                bool leftTrackBackward = Controller.IsPressedWithCharge(Control.LEFT_TRACK_BACKWARDS);
+                bool rightTrackForward = Controller.IsPressedWithCharge(Control.RIGHT_TRACK_FORWARDS);
+                bool rightTrackBackward = Controller.IsPressedWithCharge(Control.RIGHT_TRACK_BACKWARDS);
+
+                bool leftMoved = (leftTrackForward || leftTrackBackward) && !(leftTrackForward && leftTrackBackward);
+                bool rightMoved = (rightTrackForward || rightTrackBackward) && !(rightTrackForward && rightTrackBackward);
+
+                tankMoved = leftMoved || rightMoved;
+
+                if (tankMoved)
                 {
-                    tankMoved = true;
-                    if (Controller.IsPressedWithCharge(Control.RIGHT_TRACK_FORWARDS))
+                    // Move the tank
+                    if (leftTrackForward && rightTrackForward)
                     {
-                        Tank.BothTracksForward();
-                        Controller.DepleteCharge(Control.RIGHT_TRACK_FORWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
-                        Controller.DepleteCharge(Control.LEFT_TRACK_FORWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
+                        Tank.BothTracksForward(pSeconds);
                     }
-                    else if (Controller.IsPressedWithCharge(Control.RIGHT_TRACK_BACKWARDS))
+                    else if (leftTrackBackward && rightTrackBackward)
                     {
-                        Tank.LeftTrackForward();
-                        Tank.RightTrackBackward();
-                        Controller.DepleteCharge(Control.RIGHT_TRACK_BACKWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
-                        Controller.DepleteCharge(Control.LEFT_TRACK_FORWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
+                        Tank.BothTracksBackward(pSeconds);
                     }
-                    else
+                    else if (leftTrackForward && rightTrackBackward)
                     {
-                        Tank.LeftTrackForward();
-                        Controller.DepleteCharge(Control.LEFT_TRACK_FORWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
+                        Tank.BothTracksOpposite(true, pSeconds);
                     }
-                }
-                else if (Controller.IsPressedWithCharge(Control.LEFT_TRACK_BACKWARDS))
-                {
-                    tankMoved = true;
-                    if (Controller.IsPressedWithCharge(Control.RIGHT_TRACK_BACKWARDS))
+                    else if (leftTrackBackward && rightTrackForward)
                     {
-                        Tank.BothTracksBackward();
-                        Controller.DepleteCharge(Control.LEFT_TRACK_BACKWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
-                        Controller.DepleteCharge(Control.RIGHT_TRACK_BACKWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
+                        Tank.BothTracksOpposite(false, pSeconds);
                     }
-                    else if (Controller.IsPressedWithCharge(Control.RIGHT_TRACK_FORWARDS))
+                    else if (leftTrackForward)
                     {
-                        Tank.LeftTrackBackward();
-                        Tank.RightTrackForward();
-                        Controller.DepleteCharge(Control.RIGHT_TRACK_FORWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
-                        Controller.DepleteCharge(Control.LEFT_TRACK_BACKWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
+                        Tank.LeftTrackForward(pSeconds);
                     }
-                    else
+                    else if (leftTrackBackward)
                     {
-                        Tank.LeftTrackBackward();
-                        Controller.DepleteCharge(Control.LEFT_TRACK_BACKWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
+                        Tank.LeftTrackBackward(pSeconds);
                     }
-                }
-                else if (Controller.IsPressedWithCharge(Control.RIGHT_TRACK_FORWARDS))
-                {
-                    tankMoved = true;
-                    if (Controller.IsPressedWithCharge(Control.LEFT_TRACK_FORWARDS))
+                    else if (rightTrackForward)
                     {
-                        Tank.BothTracksForward();
-                        Controller.DepleteCharge(Control.RIGHT_TRACK_FORWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
-                        Controller.DepleteCharge(Control.LEFT_TRACK_FORWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
+                        Tank.RightTrackForward(pSeconds);
                     }
-                    else if (Controller.IsPressedWithCharge(Control.LEFT_TRACK_BACKWARDS))
+                    else if (rightTrackBackward)
                     {
-                        Tank.LeftTrackBackward();
-                        Tank.RightTrackForward();
-                        Controller.DepleteCharge(Control.RIGHT_TRACK_FORWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
-                        Controller.DepleteCharge(Control.LEFT_TRACK_BACKWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
+                        Tank.RightTrackBackward(pSeconds);
                     }
-                    else
+
+                    // Deplete the charge for the tracks
+                    Control control = leftTrackForward ? Control.LEFT_TRACK_FORWARDS : Control.LEFT_TRACK_BACKWARDS;
+                    if (leftMoved)
                     {
-                        Tank.RightTrackForward();
-                        Controller.DepleteCharge(Control.RIGHT_TRACK_FORWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
+                        Controller.DepleteCharge(control, TRACK_DEPLETION_RATE * pSeconds);
                     }
-                }
-                else if (Controller.IsPressedWithCharge(Control.RIGHT_TRACK_BACKWARDS))
-                {
-                    tankMoved = true;
-                    if (Controller.IsPressedWithCharge(Control.LEFT_TRACK_BACKWARDS))
+                    control = rightTrackForward ? Control.RIGHT_TRACK_FORWARDS : Control.RIGHT_TRACK_BACKWARDS;
+                    if (rightMoved)
                     {
-                        Tank.BothTracksBackward();
-                        Controller.DepleteCharge(Control.LEFT_TRACK_BACKWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
-                        Controller.DepleteCharge(Control.RIGHT_TRACK_BACKWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
-                    }
-                    else if (Controller.IsPressedWithCharge(Control.LEFT_TRACK_FORWARDS))
-                    {
-                        Tank.LeftTrackForward();
-                        Tank.RightTrackBackward();
-                        Controller.DepleteCharge(Control.RIGHT_TRACK_BACKWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
-                        Controller.DepleteCharge(Control.LEFT_TRACK_FORWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
-                    }
-                    else
-                    {
-                        Tank.RightTrackBackward();
-                        Controller.DepleteCharge(Control.RIGHT_TRACK_BACKWARDS, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
+                        Controller.DepleteCharge(control, TRACK_DEPLETION_RATE * pSeconds);
                     }
                 }
 
                 if (Controller.IsPressedWithCharge(Control.TURRET_LEFT))
                 {
-                    Tank.CannonLeft();
-                    Controller.DepleteCharge(Control.TURRET_LEFT, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
+                    Tank.CannonLeft(pSeconds);
+                    Controller.DepleteCharge(Control.TURRET_LEFT, TRACK_DEPLETION_RATE * pSeconds);
                 }
                 else if (Controller.IsPressedWithCharge(Control.TURRET_RIGHT))
                 {
-                    Tank.CannonRight();
-                    Controller.DepleteCharge(Control.TURRET_RIGHT, DGS.Instance.GetFloat("TRACK_DEPLETION_RATE") * pSeconds);
-
+                    Tank.CannonRight(pSeconds);
+                    Controller.DepleteCharge(Control.TURRET_RIGHT, TRACK_DEPLETION_RATE * pSeconds);
                 }
 
+                int currentJackIndex = Controller.GetJackIndex(Control.FIRE);
                 if (Controller.IsPressedWithCharge(Control.FIRE))
                 {
-                    Tank.PrimingWeapon(pSeconds);
+                    if (mCannonJackIndex == -1) mCannonJackIndex = currentJackIndex;
+                    else if (mCannonJackIndex == currentJackIndex) Tank.PrimingWeapon(pSeconds);
                 }
                 else
                 {
-                    if (Tank.FireIfPrimed())
+                    if (mCannonJackIndex == currentJackIndex && Tank.IsFirePrimed())
                     {
-                        SoundEffectInstance bulletShot = Tankontroller.Instance().GetSoundManager().GetSoundEffectInstance("Sounds/Tank_Gun");
-                        bulletShot.Play();
-                        Controller.DepleteCharge(Control.FIRE, DGS.Instance.GetFloat("BULLET_CHARGE_DEPLETION")); // BULLET CHARGE HERE
-                        Tank.SetFired(DGS.Instance.GetInt("BLAST_DELAY"));
+                        if (Controller.DepleteCharge(Control.FIRE, BULLET_CHARGE_DEPLETION))
+                        {
+                            Tank.Fire(Tank.mbulletType);
+                            SoundEffectInstance bulletShot = Tankontroller.Instance().GetSoundManager().GetSoundEffectInstance("Sounds/Tank_Gun");
+                            bulletShot.Play();
+                        }
                     }
+                    mCannonJackIndex = -1;
                 }
 
-                if (Controller.IsPressed(Control.RECHARGE))
+                if (Controller.IsPressed(Control.RECHARGE) && !Controller.WasPressed(Control.RECHARGE))
                 {
-                    if (!Tank.ChargeDown)
-                    {
-                        Tank.ChargePressed();
-                        Controller.AddCharge(Control.RECHARGE, DGS.Instance.GetFloat("CHARGE_AMOUNT"));
-                    }
+                    Controller.AddCharge(Control.RECHARGE, CHARGE_AMOUNT);
                 }
-                else
-                {
-                    Tank.ChargeReleased();
-                }
-
-                
-
-               
-            }
-            if (Tank.Fired() > 0)
-            {
-                Tank.DecFired();
             }
             return tankMoved;
         }

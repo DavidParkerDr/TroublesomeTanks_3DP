@@ -59,25 +59,25 @@ namespace Tankontroller.Scenes
             Rectangle buttonRect = new Rectangle(buttonX, buttonY, buttonWidth, buttonHeight);
 
             // Start button
-            Button startGameButton = new Button(startGameButtonTexture, startGameButtonTexturePressed, buttonRect, Color.White, StartGame);
+            Button startGameButton = new Button(startGameButtonTexture, startGameButtonTexturePressed, buttonRect, Color.Red, StartGame);
             startGameButton.Selected = true;
             mButtonList.Add(startGameButton);
 
             // Level Selection Button
             buttonRect.X += (int)(startGameButtonTexture.Width * 1.25f);
-            Button levelSelectionButton = new Button(levelSelectionButtonTexture, levelSelectionButtonTexturePressed, buttonRect, Color.White, SelectLevel);
+            Button levelSelectionButton = new Button(levelSelectionButtonTexture, levelSelectionButtonTexturePressed, buttonRect, Color.Red, SelectLevel);
             levelSelectionButton.Selected = false;
             mButtonList.Add(levelSelectionButton);
 
             // Pickup Scene button
             buttonRect.X += (int)(startGameButtonTexture.Width * 1.25f);
-            Button pickupinfoButton = new Button(pickupinfoButtonTexture, pickupinfoButtonTexturePressed, buttonRect, Color.White, PickupInfo);
+            Button pickupinfoButton = new Button(pickupinfoButtonTexture, pickupinfoButtonTexturePressed, buttonRect, Color.Red, PickupInfo);
             pickupinfoButton.Selected = false;
             mButtonList.Add(pickupinfoButton);
 
             //Makes the exit game button
             buttonRect.X += (int)(startGameButtonTexture.Width * 1.25f);
-            Button exitGameButton = new Button(exitGameButtonTexture, exitGameButtonTexturePressed, buttonRect, Color.White, ExitGame);
+            Button exitGameButton = new Button(exitGameButtonTexture, exitGameButtonTexturePressed, buttonRect, Color.Red, ExitGame);
             exitGameButton.Selected = false;
             mButtonList.Add(exitGameButton);
 

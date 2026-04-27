@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using Tankontroller.Managers;
 using Tankontroller.Utilities;
 using Tankontroller.World.Particles;
-using Tankontroller.World.Shapes;
 
 namespace Tankontroller.World.Bullets
 {
@@ -16,36 +15,47 @@ namespace Tankontroller.World.Bullets
         float numOfBounces;
         public BouncyBullet(Vector2 pPosition, Vector2 pVelocity, Color pColour, float pNumOfBounces) : base(pPosition, pVelocity, pColour, pNumOfBounces) {
             numOfBounces = pNumOfBounces;
-            CircleShape.Radius *= 3.0f;
+            Radius *= 3.0f;
         }
         public override void Update(float pSeconds)
         {
             base.Update(pSeconds);
         }
 
-        public override bool TankCollisionResponse(Tank pTank)
+        public override bool DoCollision(Rectangle pRectangle)
         {
-            pTank.TakeDamage();
-            CreateExplosion(Vector2.Normalize(Position - pTank.Transform.Position));
+            Vector2 collisonNormal = GetCollisionNormal(pRectangle);
+            if (numOfBounces <= 0)
+            {
+                CreateExplosion(-collisonNormal);
+                return true;
+            }
+            Velocity = Vector2.Reflect(Velocity, collisonNormal);
+            numOfBounces--;
+            return false;
+        }
+
+        public override bool DoCollision(RectWall pWall)
+        {
+            Vector2 collisonNormal = GetCollisionNormal(pWall.Rectangle);
+            if (numOfBounces <= 0)
+            {
+                CreateExplosion(collisonNormal);
+                return true;
+            }
+            Velocity = Vector2.Reflect(Velocity, collisonNormal);
+            numOfBounces--;
+            return false;
+        }
+
+        public override bool DoCollision(Tank pTank)
+        {
+            CreateExplosion(Vector2.Normalize(Position - pTank.GetWorldPosition()));
             return true;
         }
 
-        public override bool BulletCollisionResponse(Bullet pBullet) => false;
-
-        public override bool WallCollisionResponse(CollisionEvent collisionEvent)
+        public override bool DoCollision(Bullet pBullet)
         {
-            Vector2 collisionNormal = collisionEvent.CollisionNormal ?? Vector2.One;
-            if (numOfBounces <= 0)
-            {
-                CreateExplosion(collisionNormal);
-                return true;
-            }
-            // Only reflect if the bullet is moving towards the wall
-            if (Vector2.Dot(Velocity, collisionNormal) < 0)
-            {
-                Velocity = Vector2.Reflect(Velocity, collisionNormal);
-                numOfBounces--;
-            }
             return false;
         }
 

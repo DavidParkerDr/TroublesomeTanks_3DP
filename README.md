@@ -62,7 +62,7 @@ The project has undergone numerous refactoring efforts over the course of the CD
 
 
 ## Solution Diagrams:
-### Scene Mangement - Class Diagram
+### Scenes - Class Diagram
 ```mermaid
 classDiagram
     IScene <|-- FlashScreenScene
@@ -72,8 +72,6 @@ classDiagram
     IScene <|-- StartScene
     IScene <|-- TransitionScene
     IScene <|-- LevelSelectionScene
-    IScene <|-- PickupAndBulletScene
-
     SceneManager <-- IScene
 
     class IScene{
@@ -117,157 +115,7 @@ classDiagram
         +MakeThumbnailFromMapFile(string pMapFile)
         +DrawOutline(Rectangle rect, string textureName)
     }
-    class PickupAndBulletScene{
-
-    }
 ```
-
-### Game bootstrap and global services - Class Diagram
-```mermaid
-classDiagram
-direction LR
-
-class Program
-class Tankontroller
-class IGame {
-  <<interface>>
-  +GetSoundManager()
-  +GetControllerManager()
-  +SM()
-  +CM()
-  +GDM()
-  +ScaleFactor()
-}
-class SceneManager
-class SoundManager
-class ControllerManager
-class DGS
-
-Program --> Tankontroller : creates/runs
-Tankontroller ..|> IGame
-Tankontroller --> SceneManager : uses
-Tankontroller --> SoundManager : uses
-Tankontroller --> ControllerManager : uses
-Tankontroller --> DGS : reads config
-```
-
-### Gameplay Domain System - Class Diagram
-```mermaid
-classDiagram
-direction LR
-
-class TheWorld
-class Tank
-class RectWall
-
-class Pickup {
-  <<abstract>>
-  +TriggerEffect(Tank)
-}
-class HealthPickup
-class EMPPickup
-class MinePickup
-class BouncyBulletPickup
-
-class Bullet {
-  <<abstract>>
-  +TankCollisionResponse(Tank)
-  +BulletCollisionResponse(Bullet)
-  +WallCollisionResponse(CollisionEvent)
-}
-class DefaultBullet
-class BouncyBullet
-class BouncyEMPBullet
-class MineBullet
-class Shockwave
-
-TheWorld o--> Tank : contains
-TheWorld o--> RectWall : contains
-TheWorld o--> Pickup : contains
-Tank *--> Bullet : fires/manages
-
-Pickup <|-- HealthPickup
-Pickup <|-- EMPPickup
-Pickup <|-- MinePickup
-Pickup <|-- BouncyBulletPickup
-
-Bullet <|-- DefaultBullet
-Bullet <|-- BouncyBullet
-Bullet <|-- BouncyEMPBullet
-Bullet <|-- MineBullet
-Bullet <|-- Shockwave
-```
-
-### Input and Controller Subsystem - Class Diagram
-```mermaid
-classDiagram
-direction LR
-
-class IController {
-  <<interface>>
-  +IsPressed(Control)
-  +WasPressed(Control)
-  +IsPressedWithCharge(Control)
-  +AddCharge(Control,float)
-  +DepleteCharge(Control,float)
-  +ResetJacks()
-  +Disconnect()
-  +IsConnected()
-  +SetColour(Color)
-  +UpdateController()
-}
-class Controller {
-  <<abstract>>
-}
-class KeyboardController
-class ModularController
-class Hacktroller
-class ControllerManager
-class Control {
-  <<enumeration>>
-}
-
-Controller ..|> IController
-Controller <|-- KeyboardController
-Controller <|-- ModularController
-
-ModularController --> Hacktroller : wraps serial device
-ControllerManager o--> IController : active controllers
-IController --> Control : uses enum
-```
-
-### Map Loading and World Construction - Class Diagram
-```mermaid
-classDiagram
-direction LR
-
-class MapManager
-class MapData
-class WallData
-class TankData
-class PickupData
-
-class TheWorld
-class RectWall
-class Tank
-class PickupSpawnPoint
-class PickupType {
-  <<enumeration>>
-}
-
-MapManager --> MapData : deserializes JSON
-MapData *--> WallData
-MapData *--> TankData
-MapData *--> PickupData
-
-MapManager --> TheWorld : returns aggregate
-
-PickupSpawnPoint --> PickupType : allowed pickup flags
-TheWorld o--> RectWall
-TheWorld o--> Tank
-TheWorld o--> PickupSpawnPoint
-```
-
 ### GUIs - Class Diagram
 ```mermaid
 classDiagram
@@ -330,79 +178,4 @@ classDiagram
         +Collide(Tank, out Vector2)
     }
    
-```
-
-### Collision System - Class Diagram
-
-```mermaid
-classDiagram
-    class ICollidable {
-        <<interface>>
-        +Transform Transform
-        +CollisionShape CollisionShape
-    }
-
-    class Transform {
-        +Vector2 Position
-        +float Rotation
-        +Vector2 Scale
-    }
-
-    class CollisionShape {
-        +Transform Owner
-        +bool Enabled
-        +Vector2 LocalOffset
-        +Vector2 WorldPosition
-        +Intersects(CollisionShape other) CollisionEvent
-        +Intersects(Vector2 point) CollisionEvent
-    }
-
-    class PointShape {
-        +Intersects(CollisionShape other) CollisionEvent
-        +Intersects(Vector2 point) CollisionEvent
-    }
-
-    class CircleShape {
-        +float Radius
-        +Intersects(CollisionShape other) CollisionEvent
-        +Intersects(Vector2 point) CollisionEvent
-    }
-
-    class RectangleAxisAlignedShape {
-        +Vector2 Size
-        +Vector2 HalfExtents
-        +Vector2 Min
-        +Vector2 Max
-        +ToRectangle() Rectangle
-        +Draw(SpriteBatch, Texture2D, Color)
-        +Intersects(CollisionShape other) CollisionEvent
-        +Intersects(Vector2 point) CollisionEvent
-    }
-
-    class RectangleOrientedShape {
-        +Vector2 Size
-        +Vector2 HalfExtents
-        +float LocalRotation
-        +float WorldRotation
-        +ToRectangle() Rectangle
-        +Draw(SpriteBatch, Texture2D, Color)
-        +Intersects(CollisionShape other) CollisionEvent
-        +Intersects(Vector2 point) CollisionEvent
-    }
-
-    class CollisionEvent {
-        +bool HasCollided
-        +Vector2 CollisionPosition
-        +Vector2 CollisionNormal
-    }
-
-    ICollidable --> Transform
-    ICollidable --> CollisionShape : "CollisionShape"
-    CollisionShape --> Transform : "owner"
-    CollisionShape ..> CollisionEvent : "returns"
-
-    CollisionShape <|-- PointShape
-    CollisionShape <|-- CircleShape
-    CollisionShape <|-- RectangleAxisAlignedShape
-    CollisionShape <|-- RectangleOrientedShape
 ```

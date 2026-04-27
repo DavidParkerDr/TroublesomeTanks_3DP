@@ -5,16 +5,11 @@ using System.Text.Json;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Tankontroller.World;
-using Tankontroller.World.WorldObject;
-using Tankontroller.World.Pickups;
 
 namespace Tankontroller
 {
     public static class MapManager
     {
-        /// <summary>
-        /// DEPRECATED method for loading maps from a custom text format. Use LoadMapFromJson instead for better performance and maintainability.
-        /// </summary>
         public static TheWorld LoadMap(string filePath)
         {
             string workingDirectory = Environment.CurrentDirectory;
@@ -25,9 +20,6 @@ namespace Tankontroller
             return ParseLines(lines);
         }
 
-        /// <summary>
-        /// DEPRECATED method for loading maps from a custom text format. Use LoadMapFromJson instead for better performance and maintainability.
-        /// </summary>
         private static TheWorld ParseLines(string[] lines)
         {
             int screenWidth = Tankontroller.Instance().GDM().GraphicsDevice.Viewport.Width;
@@ -35,13 +27,12 @@ namespace Tankontroller
             Rectangle playArea = new Rectangle(screenWidth * 2 / 100, screenHeight * 25 / 100, screenWidth * 96 / 100, screenHeight * 73 / 100);
             List<RectWall> Walls = new List<RectWall>();
             List<Tank> Tanks = new List<Tank>();
-            List<PickupSpawnPoint> PickupSpawnPositions = new List<PickupSpawnPoint>();
+            List<Vector2> PickupSpawnPositions = new List<Vector2>();
             float tankScale = (float)(playArea.Width / (50 * 40)) * Tankontroller.Instance().ScaleFactor(); // Adjusted for resolution scale factor
 
             string texture = null;
             Vector2 position = Vector2.Zero;
             Vector2 size = Vector2.Zero;
-            Dictionary<PickupType, bool> activatedPickups = new Dictionary<PickupType, bool>();
             float rotation = 0f;
             bool isWall = false;
             bool isTank = false;
@@ -96,35 +87,16 @@ namespace Tankontroller
                 else if (line.Contains("rotation"))
                 {
                     rotation = float.Parse(line.Split('=')[1].Trim());
+                    rotation = MathHelper.ToRadians(rotation);
                     continue;
-                }
-                else if(line.Contains("health"))
-                {
-                    string[] components = line.Split('=')[1].Trim().Split(',');
-                    activatedPickups[PickupType.HEALTH] = bool.Parse(components[0]);
-                }
-                else if(line.Contains("emp"))
-                {
-                   string[] components = line.Split('=')[1].Trim().Split(',');
-                    activatedPickups[PickupType.EMP] = bool.Parse(components[0]);
-                }
-                else if(line.Contains("mine"))
-                {
-                    string[] components = line.Split('=')[1].Trim().Split(',');
-                    activatedPickups[PickupType.MINE] = bool.Parse(components[0]);
-                }
-                else if(line.Contains("bouncy_bullet"))
-                {
-                    string[] components = line.Split('=')[1].Trim().Split(',');
-                    activatedPickups[PickupType.BOUNCY_BULLET] = bool.Parse(components[0]);
                 }
 
                 //check if the current object is a wall or a tank
                 if (isWall)
                 {
-                    Texture2D wallTexture = Tankontroller.Instance().CM().Load<Texture2D>(texture);
-                    Transform wallTransform = new(position, rotation);
-                    RectWall currentWall = new(wallTransform, new Vector2(size.X, size.Y), wallTexture);
+                    RectWall currentWall = new RectWall(
+                        Tankontroller.Instance().CM().Load<Texture2D>(texture),
+                        new Rectangle((int)position.X, (int)position.Y, (int)size.X, (int)size.Y));
                     Walls.Add(currentWall);
                     isWall = false;
                 }
@@ -135,7 +107,7 @@ namespace Tankontroller
                 }
                 else if (isPickup)
                 {
-                    PickupSpawnPositions.Add(new PickupSpawnPoint(position,activatedPickups));
+                    PickupSpawnPositions.Add(position);
                     isPickup = false;
                 }
             }
@@ -164,7 +136,7 @@ namespace Tankontroller
             Rectangle playArea = new Rectangle(screenWidth * 2 / 100, screenHeight * 25 / 100, screenWidth * 96 / 100, screenHeight * 73 / 100);
             List<RectWall> Walls = new List<RectWall>();
             List<Tank> Tanks = new List<Tank>();
-            List<PickupSpawnPoint> PickupSpawnPositions = new List<PickupSpawnPoint>();
+            List<Vector2> PickupSpawnPositions = new List<Vector2>();
             float tankScale = (float)playArea.Width / (50 * 40);
 
             foreach (var wall in mapData.Walls)
@@ -172,18 +144,16 @@ namespace Tankontroller
                 try
                 {
                     var texture = wall.Texture;
-                    var positionPercent = new Vector2(float.Parse(wall.Position[0]), float.Parse(wall.Position[1]));
-                    var sizePercent = new Vector2(float.Parse(wall.Size[0]), float.Parse(wall.Size[1]));
-                    Rectangle wallRect = GetWorldRect(playArea, positionPercent, sizePercent);
-                    Vector2 wallCenter = new Vector2(wallRect.X + wallRect.Width / 2f, wallRect.Y + wallRect.Height / 2f);
-                    Vector2 wallSize = new Vector2(wallRect.Width, wallRect.Height);
-                    float rotationDegrees = 0f;
-                    float.TryParse(wall.Rotation, out rotationDegrees);
-                    float rotationRadians = rotationDegrees;
-                    Transform wallTransform = new(wallCenter, rotationRadians);
+                    var position = new Vector2(float.Parse(wall.Position[0]), float.Parse(wall.Position[1]));
+                    var size = new Vector2(float.Parse(wall.Size[0]), float.Parse(wall.Size[1]));
+                    position.X = playArea.X + (playArea.Width * (position.X / 100.0f));
+                    position.Y = playArea.Y + (playArea.Height * (position.Y / 100.0f));
+                    size.X = playArea.Width * (size.X / 100.0f);
+                    size.Y = playArea.Height * (size.Y / 100.0f);
 
-                    RectWall currentWall = new RectWall(wallTransform,wallSize,Tankontroller.Instance().CM().Load<Texture2D>(texture));
-
+                    RectWall currentWall = new RectWall(
+                        Tankontroller.Instance().CM().Load<Texture2D>(texture),
+                        new Rectangle((int)position.X, (int)position.Y, (int)size.X, (int)size.Y));
                     Walls.Add(currentWall);
                 }
                 catch (Exception ex)
@@ -216,9 +186,8 @@ namespace Tankontroller
                     var position = new Vector2(float.Parse(pickup.Position[0]), float.Parse(pickup.Position[1]));
                     position.X = playArea.X + (playArea.Width * (position.X / 100.0f));
                     position.Y = playArea.Y + (playArea.Height * (position.Y / 100.0f));
-                    Dictionary <PickupType,bool> activatedPickups = pickup.ActivatedPickups;
 
-                    PickupSpawnPositions.Add(new PickupSpawnPoint(position,activatedPickups));
+                    PickupSpawnPositions.Add(position);
                 }
                 catch (Exception ex)
                 {
@@ -228,17 +197,6 @@ namespace Tankontroller
 
             return new TheWorld(playArea, Walls, Tanks, PickupSpawnPositions);
         }
-
-        private static Rectangle GetWorldRect(Rectangle pPlayArea, Vector2 pPosPercent, Vector2 pSizePercent)
-        {
-            return new Rectangle(
-                (int)(pPlayArea.X + (pPlayArea.Width * (pPosPercent.X / 100.0f))),
-                (int)(pPlayArea.Y + (pPlayArea.Height * (pPosPercent.Y / 100.0f))),
-                (int)(pPlayArea.Width * (pSizePercent.X / 100.0f)),
-                (int)(pPlayArea.Height * (pSizePercent.Y / 100.0f))
-            );
-        }
-
         public class MapData
         {
             public List<WallData> Walls { get; set; }
@@ -251,7 +209,6 @@ namespace Tankontroller
             public string Texture { get; set; }
             public string[] Position { get; set; }
             public string[] Size { get; set; }
-            public string Rotation { get; set; }
         }
 
         public class TankData
@@ -263,9 +220,6 @@ namespace Tankontroller
         public class PickupData
         {
             public string[] Position { get; set; }
-            public Dictionary<PickupType, bool> ActivatedPickups { get; set; }
         }
-
-
     }
 }

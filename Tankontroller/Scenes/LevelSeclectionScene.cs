@@ -14,7 +14,6 @@ namespace Tankontroller.Scenes
     public class LevelSelectionScene : IScene
     {
         private static readonly bool ONLY_KEYBOARD_ON_MAP_SELECT = DGS.Instance.GetBool("ONLY_KEYBOARD_ON_MAP_SELECT");
-        private static Color WALL_COLOUR = DGS.Instance.GetColour("COLOUR_WALLS");
         private static readonly Texture2D mBackgroundTexture = Tankontroller.Instance().CM().Load<Texture2D>("background_01");
         private static readonly SpriteFont mSpriteFont = Tankontroller.Instance().CM().Load<SpriteFont>("TitleFont");
         private Rectangle mBackgroundRectangle;
@@ -55,7 +54,6 @@ namespace Tankontroller.Scenes
             {
                 filePaths[i] = filePaths[i].Replace(mapsDirectory + "\\", "");
             }
-            
             mMapFiles = new List<string>(filePaths);
 
             // Load thumbnail textures for each map
@@ -187,11 +185,8 @@ namespace Tankontroller.Scenes
             {
                 Vector2 pos = new Vector2(float.Parse(wall.Position[0]), float.Parse(wall.Position[1]));
                 Vector2 size = new Vector2(float.Parse(wall.Size[0]), float.Parse(wall.Size[1]));
-                float rotationDegrees = 0f;
-                float.TryParse(wall.Rotation, out rotationDegrees);
-                float rotationRadians = rotationDegrees;
                 Rectangle wallRect = GetRect(playArea, pos, size);
-                DrawOutline(wallRect, pos, size, rotationRadians, wall.Texture);
+                DrawOutline(wallRect, wall.Texture);
             }
 
             // Draw outlines for tanks
@@ -227,40 +222,10 @@ namespace Tankontroller.Scenes
             // Draw walls
             foreach (var wall in mapData.Walls)
             {
-                // Wall position/size in map space (0–100 percent)
-                Vector2 posPercent = new Vector2(float.Parse(wall.Position[0]), float.Parse(wall.Position[1]));
-                Vector2 sizePercent = new Vector2(float.Parse(wall.Size[0]), float.Parse(wall.Size[1]));
-                float rotationDegrees = 0f;
-                float.TryParse(wall.Rotation, out rotationDegrees);
-                float rotationRadians = rotationDegrees;
-
-                // Rectangle in thumbnail pixel space
-                Rectangle wallRect = GetRect(playArea, posPercent, sizePercent);
-
-                // Center of the rect is where we draw the sprite
-                Vector2 drawPosition = new Vector2(
-                    wallRect.X + wallRect.Width / 2f,
-                    wallRect.Y + wallRect.Height / 2f);
-
-                Texture2D wallTexture = mGameInstance.CM().Load<Texture2D>(wall.Texture);
-                Vector2 origin = new Vector2(wallTexture.Width / 2f, wallTexture.Height / 2f);
-
-                // Scale texture to match the rectangle size
-                Vector2 scale = new Vector2(
-                    wallRect.Width / (float)wallTexture.Width,
-                    wallRect.Height / (float)wallTexture.Height);
-
-                // Todo change to use a colour from the DGS
-                spriteBatch.Draw(
-                    wallTexture,
-                    drawPosition,
-                    null,
-                    WALL_COLOUR,
-                    rotationRadians,
-                    origin,
-                    scale,
-                    SpriteEffects.None,
-                    0f);
+                Vector2 pos = new Vector2(float.Parse(wall.Position[0]), float.Parse(wall.Position[1]));
+                Vector2 size = new Vector2(float.Parse(wall.Size[0]), float.Parse(wall.Size[1]));
+                Rectangle wallRect = GetRect(playArea, pos, size);
+                spriteBatch.Draw(mGameInstance.CM().Load<Texture2D>(wall.Texture), wallRect, DGS.Instance.GetColour("COLOUR_WALLS"));
             }
 
             // Draw tanks
@@ -319,37 +284,6 @@ namespace Tankontroller.Scenes
             int offset = 2; // Outline thickness
             Texture2D texture = mGameInstance.CM().Load<Texture2D>(textureName);
             spriteBatch.Draw(texture, new Rectangle(rect.X - offset, rect.Y - offset, rect.Width + (offset * 2), rect.Height + (offset * 2)), Color.Black);
-        }
-
-        void DrawOutline(Rectangle pRectangle, Vector2 pPosition, Vector2 pSize, float pRotation, string pTextureName)
-        {
-            int offset = 2;
-            Texture2D texture = mGameInstance.CM().Load<Texture2D>(pTextureName);
-
-            // Center of the rectangle in thumbnail/render-target space
-            Vector2 center = new Vector2(
-                pRectangle.X + pRectangle.Width / 2f,
-                pRectangle.Y + pRectangle.Height / 2f);
-
-            // Origin is the texture center
-            Vector2 origin = new Vector2(texture.Width / 2f, texture.Height / 2f);
-
-            // Scale so that the sprite covers the rect plus outline offset
-            Vector2 scale = new Vector2(
-                (pRectangle.Width + offset * 2) / (float)texture.Width,
-                (pRectangle.Height + offset * 2) / (float)texture.Height);
-
-            // Todo change to use a colour from the DGS
-            spriteBatch.Draw(
-                texture,
-                center,
-                null,
-                Color.Black,
-                pRotation,
-                origin,
-                scale,
-                SpriteEffects.None,
-                0f);
         }
 
         public override void Escape()

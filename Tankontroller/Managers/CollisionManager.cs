@@ -1,96 +1,57 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Graphics;
+using System;
+using System.Collections.Generic;
 using Tankontroller.World;
 using Tankontroller.World.Bullets;
 using Tankontroller.World.Particles;
+using Tankontroller.World.Shapes;
 
 namespace Tankontroller.Managers
 {
-    internal class CollisionManager
+    /// <summary>
+    /// Static class that manages logic for all collision detection and response
+    /// </summary>
+    internal static class CollisionManager
     {
-        private static CollisionManager mInstance = new();
+        public static readonly bool DRAW_COLLISION_SHAPES = DGS.Instance.GetBool("DRAW_COLLISION_SHAPES");
 
-        static CollisionManager() { }
-        private CollisionManager() { }
-
-        public static CollisionManager Instance
+        /// <summary>
+        /// This is the collision response for moving a tank away from a wall when a tank collides with a wall
+        /// </summary>
+        /// <returns> If the function fails return false, otherwise returns true</returns>
+        static public bool ResolveTankWallCollision(Tank tank, CollisionShape wall)
         {
-            get { return mInstance; }
-        }
+            CollisionEvent collisionEvent = tank.CollisionShape.Intersects(wall);
 
-        static public bool Collide(Tank pTank, Tank pTank_2) // Tank on Tank Collision
-        {
-            Vector2[] Tank1Corners = new Vector2[4];
-            Vector2[] Tank2Corners = new Vector2[4];
-            pTank.GetCorners(Tank1Corners);
-            pTank_2.GetCorners(Tank2Corners);
-            for (int i = 0; i < 4; i++)
+            // Nothing to do if there's no collision
+            if (!collisionEvent.HasCollided)
+                return false;
+
+            // Get the collision normal from the collision event (pointing away from the wall).
+            Vector2 normal = collisionEvent.CollisionNormal ?? Vector2.UnitX;
+
+            // Normalize to ensure unit vector (defensive programming, should already be normalized)
+            if (normal.LengthSquared() > 0f)
             {
-                if(pTank.PointIsInTank(Tank2Corners[i]) || pTank_2.PointIsInTank(Tank1Corners[i]))
-                {
-                    return true;
-                }
+                normal = Vector2.Normalize(normal);
             }
-            return false;
-        }
 
-        static public bool Collide(Tank pTank, Rectangle pRectangle, bool inverse) //Tank and Rectangle Collision
-        {
-            //account for the inverse case
-            Vector2[] tankCorners = new Vector2[4];
-            pTank.GetCorners(tankCorners);
-
-            // if the inverse case is true, then we want to check if the tank is outside the rectangle
-            if (inverse) {
-                foreach (Vector2 corner in tankCorners)
-                    if (!pRectangle.Contains(corner))
-                        return true;
-            }
-            else {
-                foreach (Vector2 corner in tankCorners)
-                {
-                    if (pRectangle.Contains(corner))
-                        return true;
-                }
-                if (pTank.PointIsInTank(new Vector2(pRectangle.Left, pRectangle.Top)) ||
-                   pTank.PointIsInTank(new Vector2(pRectangle.Right, pRectangle.Top)) ||
-                   pTank.PointIsInTank(new Vector2(pRectangle.Left, pRectangle.Bottom)) ||
-                   pTank.PointIsInTank(new Vector2(pRectangle.Right, pRectangle.Bottom)))
-                    return true;
-            }
-            return false;
-        }
-
-        static public bool Collide(Bullet pBullet, Tank pTank) //Bullet and Tank Collision
-        {
-            if (pBullet is Shockwave)
+            // Small iterative nudge until the polygon no longer collides.
+            const float step = 1.0f; // pixels per iteration (tweak for smoothness/accuracy)
+            const int maxSteps = 200; // safety to avoid infinite loop
+            for (int i = 0; i < maxSteps; ++i)
             {
-                if (pTank.TankInRadius(pBullet.Radius, pBullet.Position))
-                {
-                    return true;
-                }
-            }
-            if (pTank.PointIsInTank(pBullet.Position))
-            {
-                return true;
-            }
-            return false;
-        }
-        
-        static public bool Collide(Bullet pBullet, Rectangle pRectangle, bool inverse) //Bullet and Rectangle Collision
-        {
-            //if the inverse case is true, then we want to check if the bullet is outside the rectangle
-            if (inverse) {
-                if (!pRectangle.Contains(pBullet.Position))
+                tank.OffsetPosition(normal * step);
+
+                // Re-check collision using the new system
+                if (!tank.CollisionShape.Intersects(wall).HasCollided)
                     return true;
             }
-            else {
-                if (pRectangle.Contains(pBullet.Position))
-                    return true;
-            }
+
+            // If resolution failed, revert to previous position (safe fallback)
+            tank.PutBack();
             return false;
         }
     }

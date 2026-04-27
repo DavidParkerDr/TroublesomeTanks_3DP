@@ -57,24 +57,50 @@ namespace Tankontroller.Controller
 
         protected class Jack
         {
-            private bool mIsDown;
+            // official per-frame state (0/1) and raw input (0/1), both updated atomically
+            private int mIsDownInt;
+            private int mRawIsDownInt;
 
             public Control Control;
             public float charge;
             public bool WasDown { get; private set; }
+
+            // read official per-frame state
             public bool IsDown
             {
-                get { return mIsDown; }
-                set
+                get { return System.Threading.Interlocked.CompareExchange(ref mIsDownInt, 0, 0) == 1; }
+                // returns true by comparing mIsDownInt to 0 and if it's 0 then it returns 0 and then false when compared to 1.
+                private set
                 {
-                    WasDown = mIsDown;
-                    mIsDown = value;
+                    int newVal = value ? 1 : 0;
+                    System.Threading.Interlocked.Exchange(ref mIsDownInt, newVal);
+                    //Gets the "value" being set and converts it to an integer (1 for true, 0 for false) and then sets mIsDownInt to that value atomically.
                 }
+            }
+
+            // Called by input producer threads (keyboard main thread or background serial thread)
+            public void SetRawIsDown(bool value)
+            {
+                int newVal = value ? 1 : 0;
+                System.Threading.Interlocked.Exchange(ref mRawIsDownInt, newVal);
+            }
+
+            // Snapshot raw into official state. Must be called from main thread once per frame.
+            public void Snapshot()
+            {
+                // WasDown becomes previous frame's IsDown
+                WasDown = (System.Threading.Interlocked.CompareExchange(ref mIsDownInt, 0, 0) == 1);
+
+                // Read raw (atomic) and set official IsDown to that value
+                int raw = System.Threading.Interlocked.CompareExchange(ref mRawIsDownInt, 0, 0);
+                System.Threading.Interlocked.Exchange(ref mIsDownInt, raw);
             }
 
             public Jack()
             {
-                mIsDown = WasDown = false;
+                mIsDownInt = 0;
+                mRawIsDownInt = 0;
+                WasDown = false;
                 Control = Control.NONE;
                 ResetCharge();
             }
@@ -115,7 +141,16 @@ namespace Tankontroller.Controller
             return mJacks[pJackIndex].charge;
         }
 
-        public abstract void UpdateController();
+        // Provide a default UpdateController implementation that snapshots per-frame jack state.
+        // Concrete controllers should call base.UpdateController() at start of their UpdateController().
+        public virtual void UpdateController()
+        {
+            // Snapshot raw inputs into per-frame state once per frame
+            foreach (Jack j in mJacks)
+            {
+                j.Snapshot();
+            }
+        }
 
         public int GetJackIndex(Control pControl)
         {
@@ -135,7 +170,9 @@ namespace Tankontroller.Controller
             {
                 if (mJacks[i].Control == pControl)
                 {
-                    bool hasCharge = pControl == Control.FIRE ? mJacks[i].charge >= Player.BULLET_CHARGE_DEPLETION : mJacks[i].charge > 0;
+                    // read charge atomically to avoid torn/partial reads if another thread updates it
+                    float currentCharge = System.Threading.Interlocked.CompareExchange(ref mJacks[i].charge, 0f, 0f);
+                    bool hasCharge = pControl == Control.FIRE ? currentCharge >= Player.BULLET_CHARGE_DEPLETION : currentCharge > 0;
                     return mJacks[i].IsDown && hasCharge;
                 }
             }
@@ -238,6 +275,9 @@ namespace Tankontroller.Controller
 
         public override void UpdateController()
         {
+            // Snapshot previous per-frame state first
+            base.UpdateController();
+
             KeyboardState keyboardState = Keyboard.GetState();
 
             foreach (KeyValuePair<Keys, int> kvp in m_PortMap)
@@ -251,13 +291,14 @@ namespace Tankontroller.Controller
                 }
             }
 
+            // Write raw inputs (so snapshot above will use them as next frame's IsDown)
             foreach (KeyValuePair<Keys, Control> kvp in m_KeyMap)
             {
                 for (int i = 0; i < mJacks.Length; i++)
                 {
                     if (mJacks[i].Control == kvp.Value)
                     {
-                        mJacks[i].IsDown = keyboardState.IsKeyDown(kvp.Key);
+                        mJacks[i].SetRawIsDown(keyboardState.IsKeyDown(kvp.Key));
                     }
                 }
             }
@@ -395,7 +436,12 @@ namespace Tankontroller.Controller
             base.ResetJacks();
         }
 
-        public override void UpdateController() { }
+        // Snapshot will be done by base.UpdateController() called externally; nothing else needed here.
+        public override void UpdateController() 
+        {
+            base.UpdateController();
+            // (no additional per-frame logic here)
+        }
 
         private static Control GetControlFromState(ControllerState pState)
         {
@@ -475,15 +521,14 @@ namespace Tankontroller.Controller
                     if (mJacks[i].Control == Control.NONE)
                     {
                         mJacks[i].Control = control;
-                        mJacks[i].IsDown = isDown;
+                        // producer writes raw state (do not snapshot here)
+                        mJacks[i].SetRawIsDown(isDown);
                     }
                     else
                     {
-                        //if (control == mJacks[i].Control || control == Control.NONE)
-                        {
-                            mJacks[i].Control = control;
-                            mJacks[i].IsDown = isDown;
-                        }
+                        mJacks[i].Control = control;
+                        // producer writes raw state (do not snapshot here)
+                        mJacks[i].SetRawIsDown(isDown);
                     }
                 }
 

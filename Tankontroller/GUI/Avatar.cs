@@ -81,16 +81,8 @@ namespace Tankontroller.GUI
         public void Draw(SpriteBatch pSpriteBatch, bool pAlive, int pIndex)
         {
             pIndex = Math.Clamp(pIndex, 0, LAYER_COUNT - 1); // ensure that pIndex is within the range of the array
-            if (pAlive)
-            {
-                pSpriteBatch.Draw(m_BlackAndWhiteLayer[pIndex], m_DrawRectangles[pIndex], Color.White);
-                pSpriteBatch.Draw(m_ColourLayer[pIndex], m_DrawRectangles[pIndex], m_Colour);
-            }
-            else
-            {
-                pSpriteBatch.Draw(m_BlackAndWhiteLayer[pIndex], m_DrawRectangles[pIndex], Color.Red);
-                pSpriteBatch.Draw(m_ColourLayer[pIndex], m_DrawRectangles[pIndex], Color.Red);
-            }
+            pSpriteBatch.Draw(m_BlackAndWhiteLayer[pIndex], m_DrawRectangles[pIndex], pAlive ? Color.White : m_Colour); // Decides whether to draw the outline for the avatar in white or the tank colour
+            pSpriteBatch.Draw(m_ColourLayer[pIndex], m_DrawRectangles[pIndex], m_Colour);
         }
     }
 }

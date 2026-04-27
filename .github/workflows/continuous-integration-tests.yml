@@ -1,0 +1,37 @@
+name: Continuous Integration - Tests
+
+# Test whenever code is pushed to master or any working branch, or a pull request is opened against them
+on:
+  push:
+    branches: [ "master", "working/*" ]
+  pull_request:
+    branches: [ "master", "working/*" ]
+
+# Run test on latest Windows environment with .NET 6
+jobs:
+  test:
+    # Note: Ubuntu doesn't work on .NET 6. Windows works but is slower than Ubuntu.
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 6
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 6.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test (with coverage)
+        run: dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage"
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-coverage
+          path: '**/TestResults/**/*.xml'

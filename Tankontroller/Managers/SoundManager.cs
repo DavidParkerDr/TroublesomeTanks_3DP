@@ -25,6 +25,12 @@ namespace Tankontroller.Managers
 
         public SoundEffectInstance GetSoundEffectInstance(string pName)
         {
+            if (DGS.Instance.GetBool("MUTE_SFX"))
+            {
+                SoundEffectInstance instance = mSoundEffects[pName].CreateInstance();
+                instance.Volume = 0f;
+                return instance;
+            }
             return mSoundEffects[pName].CreateInstance();
         }
         public SoundEffectInstance GetLoopableSoundEffectInstance(string pName)
@@ -49,6 +55,8 @@ namespace Tankontroller.Managers
                 mCurrentMusic.Play();
             }
             mCurrentMusic.IsLooped = pLoopable;
+
+            if (DGS.Instance.GetBool("MUTE_MUSIC")) mCurrentMusic.Stop();
 
             return mCurrentMusic;
         }

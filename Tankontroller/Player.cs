@@ -18,8 +18,6 @@ namespace Tankontroller
         public IController Controller { get; private set; }
         public Color Colour { get; private set; }
 
-        private int mCannonJackIndex = -1; // Due to flickering of the controller, we need to keep track of the last jack used to fire the cannon
-
         // Variables to control Controller LED flashing when in EMP shockwave
         private const float FLASH_TIME = 0.5f;
         private readonly Color FLASH_COLOUR = new Color(0, 0, 0);
@@ -79,7 +77,7 @@ namespace Tankontroller
             }
 
             bool tankMoved = false;
-            if (Tank.Health() > 0)
+            if (Tank.IsAlive())
             {
                 bool leftTrackForward = Controller.IsPressedWithCharge(Control.LEFT_TRACK_FORWARDS);
                 bool leftTrackBackward = Controller.IsPressedWithCharge(Control.LEFT_TRACK_BACKWARDS);
@@ -142,33 +140,24 @@ namespace Tankontroller
 
                 if (Controller.IsPressedWithCharge(Control.TURRET_LEFT))
                 {
-                    Tank.CannonLeft(pSeconds);
+                    Tank.RotateCannonLeft(pSeconds);
                     Controller.DepleteCharge(Control.TURRET_LEFT, TRACK_DEPLETION_RATE * pSeconds);
                 }
                 else if (Controller.IsPressedWithCharge(Control.TURRET_RIGHT))
                 {
-                    Tank.CannonRight(pSeconds);
+                    Tank.RotateCannonRight(pSeconds);
                     Controller.DepleteCharge(Control.TURRET_RIGHT, TRACK_DEPLETION_RATE * pSeconds);
                 }
 
                 int currentJackIndex = Controller.GetJackIndex(Control.FIRE);
-                if (Controller.IsPressedWithCharge(Control.FIRE))
+                if (Controller.IsPressedWithCharge(Control.FIRE) && !Controller.WasPressed(Control.FIRE))
                 {
-                    if (mCannonJackIndex == -1) mCannonJackIndex = currentJackIndex;
-                    else if (mCannonJackIndex == currentJackIndex) Tank.PrimingWeapon(pSeconds);
-                }
-                else
-                {
-                    if (mCannonJackIndex == currentJackIndex && Tank.IsFirePrimed())
+                    if (Controller.DepleteCharge(Control.FIRE, BULLET_CHARGE_DEPLETION))
                     {
-                        if (Controller.DepleteCharge(Control.FIRE, BULLET_CHARGE_DEPLETION))
-                        {
-                            Tank.Fire(Tank.mbulletType);
-                            SoundEffectInstance bulletShot = Tankontroller.Instance().GetSoundManager().GetSoundEffectInstance("Sounds/Tank_Gun");
-                            bulletShot.Play();
-                        }
+                        Tank.Fire(Tank.BulletType);
+                        SoundEffectInstance bulletShot = Tankontroller.Instance().GetSoundManager().GetSoundEffectInstance("Sounds/Tank_Gun");
+                        bulletShot.Play();
                     }
-                    mCannonJackIndex = -1;
                 }
 
                 if (Controller.IsPressed(Control.RECHARGE) && !Controller.WasPressed(Control.RECHARGE))

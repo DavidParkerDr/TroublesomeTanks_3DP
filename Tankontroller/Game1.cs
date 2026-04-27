@@ -9,6 +9,7 @@ using System.IO.Ports;
 using System.Linq;
 using System.Threading.Tasks;
 using Tankontroller.Controller;
+using Tankontroller.GUI;
 using Tankontroller.Managers;
 using Tankontroller.Scenes;
 
@@ -24,6 +25,7 @@ namespace Tankontroller
         SceneManager SM();
         ContentManager CM();
         GraphicsDeviceManager GDM();
+        float ScaleFactor();
         void Exit();
     }
 
@@ -39,7 +41,8 @@ namespace Tankontroller
         private SpriteBatch mBatch;
 
         private static IGame mGameInterface = null;
-
+                
+        private float mScaleFactor = 1f; // Scaling factor for screen resolution
 
         public static IGame Instance()
         {
@@ -122,6 +125,7 @@ namespace Tankontroller
             mGraphics.PreferredBackBufferWidth = DGS.Instance.GetInt("SCREENWIDTH");
             mGraphics.IsFullScreen = DGS.Instance.GetBool("IS_FULL_SCREEN");
             Window.Title = "TroubleSome Tanks - CDP Edition!";
+            CalculateScaleFactor();
         }
 
         /// <summary>
@@ -160,7 +164,22 @@ namespace Tankontroller
             ControllerManager.PixelTex = new Texture2D(GraphicsDevice, 1, 1);
             ControllerManager.PixelTex.SetData(new Color[] { Color.White });
 
-            mSceneManager.Push(new FlashScreenScene());
+
+            // Instantly transition to Test Scene if enabled in Content/DGS.txt
+            if (DGS.Instance.GetBool("ENABLE_TEST_SCENE"))
+            {
+                List<Player> testPlayers = new()
+                {
+                    new(mControllerManager.GetController(0), new Avatar("engineer", new Rectangle(), Color.Red)),
+                    new(mControllerManager.GetController(1), new Avatar("robo", new Rectangle(), Color.Blue))
+                };
+                mSceneManager.Push(new GameScene(testPlayers, DGS.Instance.GetString("TEST_SCENE_MAP_FILE")));
+            }
+            // Otherwise, launch the game normally
+            else
+            {
+                mSceneManager.Push(new FlashScreenScene());
+            }
 
             // TODO: use this.Content to load your game content here
         }
@@ -196,5 +215,34 @@ namespace Tankontroller
             mSceneManager.Draw(seconds);
             base.Draw(gameTime);
         }
+
+        /// <summary>
+        /// Calculates the scale factor based on the current screen resolution.
+        /// </summary>
+        private void CalculateScaleFactor()
+        {
+            // Reference resolution
+            const float referenceWidth = 1920f;
+            const float referenceHeight = 1080f;
+            int screenWidth = DGS.Instance.GetInt("SCREENWIDTH");
+            int screenHeight = DGS.Instance.GetInt("SCREENHEIGHT");
+
+            // Special case for ultra wide 32:9 monitors
+            if ((float)screenWidth / (float)screenHeight == 32f / 9f)
+            {
+                float scaleRef = referenceWidth / referenceHeight;
+                float scaleNew = (float)screenWidth / (float)screenHeight;
+                mScaleFactor = scaleNew / scaleRef;
+            }
+            else // General case for all other resolutions
+            {
+                float scaleX = screenWidth / referenceWidth;
+                float scaleY = screenHeight / referenceHeight;
+                mScaleFactor = Math.Min(scaleX, scaleY);
+            }
+        }
+
+        // Add this method to implement the IGame interface member
+        public float ScaleFactor() { return mScaleFactor; }
     }
 }

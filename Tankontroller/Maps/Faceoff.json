@@ -1,26 +1,204 @@
 {
   "Walls": [
-    { "Texture": "block", "Position": [ "10", "10" ], "Size": [ "2", "30" ] },
-    { "Texture": "block", "Position": [ "10", "60" ], "Size": [ "2", "30" ] },
-    { "Texture": "block", "Position": [ "88", "10" ], "Size": [ "2", "30" ] },
-    { "Texture": "block", "Position": [ "88", "60" ], "Size": [ "2", "30" ] },
-    { "Texture": "block", "Position": [ "30", "10" ], "Size": [ "40", "2" ] },
-    { "Texture": "block", "Position": [ "30", "88" ], "Size": [ "40", "2" ] },
-    { "Texture": "block", "Position": [ "30", "30" ], "Size": [ "2", "40" ] },
-    { "Texture": "block", "Position": [ "68", "30" ], "Size": [ "2", "40" ] }
+    {
+      "Texture": "block",
+      "Position": [
+        "9.983722",
+        "9.898478"
+      ],
+      "Size": [
+        "1.953337",
+        "29.949238"
+      ],
+      "Rotation": "0"
+    },
+    {
+      "Texture": "block",
+      "Position": [
+        "9.983722",
+        "59.898476"
+      ],
+      "Size": [
+        "1.953337",
+        "29.949238"
+      ],
+      "Rotation": "0"
+    },
+    {
+      "Texture": "block",
+      "Position": [
+        "87.95442",
+        "9.898478"
+      ],
+      "Size": [
+        "1.953337",
+        "29.949238"
+      ],
+      "Rotation": "0"
+    },
+    {
+      "Texture": "block",
+      "Position": [
+        "87.95442",
+        "59.898476"
+      ],
+      "Size": [
+        "1.953337",
+        "29.949238"
+      ],
+      "Rotation": "0"
+    },
+    {
+      "Texture": "block",
+      "Position": [
+        "29.951166",
+        "9.898478"
+      ],
+      "Size": [
+        "39.989147",
+        "1.9035532"
+      ],
+      "Rotation": "0"
+    },
+    {
+      "Texture": "block",
+      "Position": [
+        "29.951166",
+        "87.94416"
+      ],
+      "Size": [
+        "39.989147",
+        "1.9035532"
+      ],
+      "Rotation": "0"
+    },
+    {
+      "Texture": "block",
+      "Position": [
+        "29.951166",
+        "29.949238"
+      ],
+      "Size": [
+        "1.953337",
+        "39.97462"
+      ],
+      "Rotation": "0"
+    },
+    {
+      "Texture": "block",
+      "Position": [
+        "67.98698",
+        "29.949238"
+      ],
+      "Size": [
+        "1.953337",
+        "39.97462"
+      ],
+      "Rotation": "0"
+    }
   ],
   "Tanks": [
-    { "Position": [ "5", "5" ], "Rotation": "45" },
-    { "Position": [ "95", "5" ], "Rotation": "135" },
-    { "Position": [ "5", "95" ], "Rotation": "315" },
-    { "Position": [ "95", "95" ], "Rotation": "225" }
+    {
+      "Position": [
+        "4.991861",
+        "4.949239"
+      ],
+      "Rotation": "45"
+    },
+    {
+      "Position": [
+        "94.95388",
+        "4.949239"
+      ],
+      "Rotation": "135"
+    },
+    {
+      "Position": [
+        "4.991861",
+        "94.92386"
+      ],
+      "Rotation": "315"
+    },
+    {
+      "Position": [
+        "94.95388",
+        "94.92386"
+      ],
+      "Rotation": "225"
+    }
   ],
   "Pickups": [
-    { "Position": [ "50", "40" ] },
-    { "Position": [ "55", "45" ] },
-    { "Position": [ "55", "55" ] },
-    { "Position": [ "50", "60" ] },
-    { "Position": [ "45", "55" ] },
-    { "Position": [ "45", "45" ] }
+    {
+      "Position": [
+        "49.97287",
+        "39.97462"
+      ],
+      "ActivatedPickups": {
+        "HEALTH": true,
+        "EMP": true,
+        "MINE": true,
+        "BOUNCY_BULLET": true
+      }
+    },
+    {
+      "Position": [
+        "54.964733",
+        "44.92386"
+      ],
+      "ActivatedPickups": {
+        "HEALTH": true,
+        "EMP": true,
+        "MINE": true,
+        "BOUNCY_BULLET": true
+      }
+    },
+    {
+      "Position": [
+        "54.964733",
+        "54.949238"
+      ],
+      "ActivatedPickups": {
+        "HEALTH": true,
+        "EMP": true,
+        "MINE": true,
+        "BOUNCY_BULLET": true
+      }
+    },
+    {
+      "Position": [
+        "49.97287",
+        "59.898476"
+      ],
+      "ActivatedPickups": {
+        "HEALTH": true,
+        "EMP": true,
+        "MINE": true,
+        "BOUNCY_BULLET": true
+      }
+    },
+    {
+      "Position": [
+        "44.98101",
+        "54.949238"
+      ],
+      "ActivatedPickups": {
+        "HEALTH": true,
+        "EMP": true,
+        "MINE": true,
+        "BOUNCY_BULLET": true
+      }
+    },
+    {
+      "Position": [
+        "44.98101",
+        "44.92386"
+      ],
+      "ActivatedPickups": {
+        "HEALTH": true,
+        "EMP": true,
+        "MINE": true,
+        "BOUNCY_BULLET": true
+      }
+    }
   ]
 }

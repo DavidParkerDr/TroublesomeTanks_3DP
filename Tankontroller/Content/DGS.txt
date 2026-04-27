@@ -12,6 +12,7 @@ float SECONDS_TO_DISPLAY_GAMEOVER_SCREEN = 30;
 
 // TANK
 int MAX_TANK_HEALTH = 3;
+int MAX_TANK_DESTRUCTION_HEALTH = 3;
 int TANK_WIDTH = 44;
 int TANK_HEIGHT = 59;
 int TANK_FRONT_BUFFER = 5;
@@ -50,3 +51,13 @@ bool ONLY_KEYBOARD_ON_MAIN_MENU = false;
 bool ONLY_KEYBOARD_ON_MAP_SELECT = false;
 bool ADD_KEYBOARD_CONTROLLER_1 = false;
 bool ADD_KEYBOARD_CONTROLLER_2 = false;
+
+// TESTING & DEBUGGING 
+// Warning: Do not enable these options for release builds
+bool ENABLE_TEST_SCENE = false; // Immediately load test game scene. ADD_KEYBOARD_CONTROLLER 1 and 2 must be true
+string TEST_SCENE_MAP_FILE = Testing.json; // Map file to use for the test scene
+
+bool MUTE_MUSIC = false; // Mute all music
+bool MUTE_SFX = false; // Mute all sound effects
+
+bool DRAW_COLLISION_SHAPES = false; // Draw collision shapes (used by CollisionManager)

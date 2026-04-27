@@ -1,0 +1,41 @@
+name: Map Editor Tests
+
+on:
+  push:
+    paths:
+      - 'TTMapEditor/**'
+      - 'TTMapEditor.Tests/**'
+  pull_request:
+    paths:
+      - 'TTMapEditor/**'
+      - 'TTMapEditor.Tests/**'
+  workflow_dispatch: {}
+
+jobs:
+  test:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: nuget-
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build map editor projects
+        run: dotnet build ./TTMapEditor/TTMapEditor.csproj --no-restore --configuration Release
+
+      - name: Run Map Editor unit tests
+        run: dotnet test ./TTMapEditor.Tests/TTMapEditor.Tests.csproj --no-build --configuration Release --verbosity normal

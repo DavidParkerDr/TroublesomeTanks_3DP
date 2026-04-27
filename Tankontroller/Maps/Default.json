@@ -22,14 +22,14 @@
     { "Position": [ "50", "93" ], "Rotation": "270" }
   ],
   "Pickups": [
-    { "Position": [ "27", "40" ] },
-    { "Position": [ "27", "60" ] },
-    { "Position": [ "73", "40" ] },
-    { "Position": [ "73", "60" ] },
-    { "Position": [ "12", "30" ] },
-    { "Position": [ "12", "70" ] },
-    { "Position": [ "88", "30" ] },
-    { "Position": [ "88", "70" ] },
-    { "Position": [ "50", "50" ] }
+    { "Position": [ "27", "40" ], "ActivatedPickups" : {"HEALTH": true, "EMP": true, "MINE": true, "BOUNCY_BULLET": true } },
+    { "Position": [ "27", "60" ], "ActivatedPickups" : {"HEALTH": true, "EMP": true, "MINE": true, "BOUNCY_BULLET": true } },
+    { "Position": [ "73", "40" ], "ActivatedPickups" : {"HEALTH": true, "EMP": true, "MINE": true, "BOUNCY_BULLET": true } },
+    { "Position": [ "73", "60" ], "ActivatedPickups" : {"HEALTH": true, "EMP": true, "MINE": true, "BOUNCY_BULLET": true } },
+    { "Position": [ "12", "30" ], "ActivatedPickups" : {"HEALTH": true, "EMP": true, "MINE": true, "BOUNCY_BULLET": true } },
+    { "Position": [ "12", "70" ], "ActivatedPickups" : {"HEALTH": true, "EMP": true, "MINE": true, "BOUNCY_BULLET": true } },
+    { "Position": [ "88", "30" ], "ActivatedPickups" : {"HEALTH": true, "EMP": true, "MINE": true, "BOUNCY_BULLET": true } },
+    { "Position": [ "88", "70" ], "ActivatedPickups" : {"HEALTH": true, "EMP": true, "MINE": true, "BOUNCY_BULLET": true } },
+    { "Position": [ "50", "50" ], "ActivatedPickups" : {"HEALTH": true, "EMP": true, "MINE": true, "BOUNCY_BULLET": true } }
   ]
 }

@@ -1,35 +1,312 @@
 {
   "Walls": [
-    { "Texture": "block", "Position": [ "49", "25" ], "Size": [ "2", "50" ] },
-    { "Texture": "block", "Position": [ "14", "0" ], "Size": [ "2", "20" ] },
-    { "Texture": "block", "Position": [ "30", "17.5" ], "Size": [ "10", "5" ] },
-    { "Texture": "block", "Position": [ "60", "17.5" ], "Size": [ "10", "5" ] },
-    { "Texture": "block", "Position": [ "84", "0" ], "Size": [ "2", "20" ] }, 
-    { "Texture": "block", "Position": [ "24", "40" ], "Size": [ "2", "20" ] },
-    { "Texture": "block", "Position": [ "0", "47.5" ], "Size": [ "25", "5" ] },
-    { "Texture": "block", "Position": [ "75", "47.5" ], "Size": [ "25", "5" ] },
-    { "Texture": "block", "Position": [ "74", "40" ], "Size": [ "2", "20" ] },
-    { "Texture": "block", "Position": [ "14", "80" ], "Size": [ "2", "20" ] },
-    { "Texture": "block", "Position": [ "30", "77.5" ], "Size": [ "10", "5" ] },
-    { "Texture": "block", "Position": [ "60", "77.5" ], "Size": [ "10", "5" ] },
-    { "Texture": "block", "Position": [ "84", "80" ], "Size": [ "2", "20" ] }
+    {
+      "Texture": "block",
+      "Position": [
+        "48.9962",
+        "25"
+      ],
+      "Size": [
+        "1.953337",
+        "50"
+      ],
+      "Rotation": "0"
+    },
+    {
+      "Texture": "block",
+      "Position": [
+        "13.998915",
+        "0"
+      ],
+      "Size": [
+        "1.953337",
+        "19.923859"
+      ],
+      "Rotation": "0"
+    },
+    {
+      "Texture": "block",
+      "Position": [
+        "29.951166",
+        "17.385786"
+      ],
+      "Size": [
+        "9.983722",
+        "4.949239"
+      ],
+      "Rotation": "0"
+    },
+    {
+      "Texture": "block",
+      "Position": [
+        "59.956593",
+        "17.385786"
+      ],
+      "Size": [
+        "9.983722",
+        "4.949239"
+      ],
+      "Rotation": "0"
+    },
+    {
+      "Texture": "block",
+      "Position": [
+        "83.99349",
+        "0"
+      ],
+      "Size": [
+        "1.953337",
+        "19.923859"
+      ],
+      "Rotation": "0"
+    },
+    {
+      "Texture": "block",
+      "Position": [
+        "23.982637",
+        "39.97462"
+      ],
+      "Size": [
+        "1.953337",
+        "19.923859"
+      ],
+      "Rotation": "0"
+    },
+    {
+      "Texture": "block",
+      "Position": [
+        "0",
+        "47.46193"
+      ],
+      "Size": [
+        "24.959305",
+        "4.949239"
+      ],
+      "Rotation": "0"
+    },
+    {
+      "Texture": "block",
+      "Position": [
+        "74.986435",
+        "47.46193"
+      ],
+      "Size": [
+        "24.959305",
+        "4.949239"
+      ],
+      "Rotation": "0"
+    },
+    {
+      "Texture": "block",
+      "Position": [
+        "73.955505",
+        "39.97462"
+      ],
+      "Size": [
+        "1.953337",
+        "19.923859"
+      ],
+      "Rotation": "0"
+    },
+    {
+      "Texture": "block",
+      "Position": [
+        "13.998915",
+        "79.94924"
+      ],
+      "Size": [
+        "1.953337",
+        "19.923859"
+      ],
+      "Rotation": "0"
+    },
+    {
+      "Texture": "block",
+      "Position": [
+        "29.951166",
+        "77.41117"
+      ],
+      "Size": [
+        "9.983722",
+        "4.949239"
+      ],
+      "Rotation": "0"
+    },
+    {
+      "Texture": "block",
+      "Position": [
+        "59.956593",
+        "77.41117"
+      ],
+      "Size": [
+        "9.983722",
+        "4.949239"
+      ],
+      "Rotation": "0"
+    },
+    {
+      "Texture": "block",
+      "Position": [
+        "83.99349",
+        "79.94924"
+      ],
+      "Size": [
+        "1.953337",
+        "19.923859"
+      ],
+      "Rotation": "0"
+    }
   ],
   "Tanks": [
-    { "Position": [ "5", "10" ], "Rotation": "45" },
-    { "Position": [ "95", "10" ], "Rotation": "135" },
-    { "Position": [ "5", "90" ], "Rotation": "315" },
-    { "Position": [ "95", "90" ], "Rotation": "225" }
+    {
+      "Position": [
+        "4.991861",
+        "9.898478"
+      ],
+      "Rotation": "45"
+    },
+    {
+      "Position": [
+        "94.95388",
+        "9.898478"
+      ],
+      "Rotation": "135"
+    },
+    {
+      "Position": [
+        "4.991861",
+        "89.97462"
+      ],
+      "Rotation": "315"
+    },
+    {
+      "Position": [
+        "94.95388",
+        "89.97462"
+      ],
+      "Rotation": "225"
+    }
   ],
   "Pickups": [
-    { "Position": [ "3", "40" ] },
-    { "Position": [ "3", "60" ] },
-    { "Position": [ "18", "8" ] },
-    { "Position": [ "18", "92" ] },
-    { "Position": [ "28", "50" ] },
-    { "Position": [ "72", "50" ] },
-    { "Position": [ "82", "8" ] },
-    { "Position": [ "82", "92" ] },
-    { "Position": [ "97", "40" ] },
-    { "Position": [ "97", "60" ] }
+    {
+      "Position": [
+        "2.9842649",
+        "39.97462"
+      ],
+      "ActivatedPickups": {
+        "HEALTH": true,
+        "EMP": true,
+        "MINE": true,
+        "BOUNCY_BULLET": true
+      }
+    },
+    {
+      "Position": [
+        "2.9842649",
+        "59.898476"
+      ],
+      "ActivatedPickups": {
+        "HEALTH": true,
+        "EMP": true,
+        "MINE": true,
+        "BOUNCY_BULLET": true
+      }
+    },
+    {
+      "Position": [
+        "17.959848",
+        "7.994924"
+      ],
+      "ActivatedPickups": {
+        "HEALTH": true,
+        "EMP": true,
+        "MINE": true,
+        "BOUNCY_BULLET": true
+      }
+    },
+    {
+      "Position": [
+        "17.959848",
+        "91.878174"
+      ],
+      "ActivatedPickups": {
+        "HEALTH": true,
+        "EMP": true,
+        "MINE": true,
+        "BOUNCY_BULLET": true
+      }
+    },
+    {
+      "Position": [
+        "27.99783",
+        "50"
+      ],
+      "ActivatedPickups": {
+        "HEALTH": true,
+        "EMP": true,
+        "MINE": true,
+        "BOUNCY_BULLET": true
+      }
+    },
+    {
+      "Position": [
+        "71.947914",
+        "50"
+      ],
+      "ActivatedPickups": {
+        "HEALTH": true,
+        "EMP": true,
+        "MINE": true,
+        "BOUNCY_BULLET": true
+      }
+    },
+    {
+      "Position": [
+        "81.98589",
+        "7.994924"
+      ],
+      "ActivatedPickups": {
+        "HEALTH": true,
+        "EMP": true,
+        "MINE": true,
+        "BOUNCY_BULLET": true
+      }
+    },
+    {
+      "Position": [
+        "81.98589",
+        "91.878174"
+      ],
+      "ActivatedPickups": {
+        "HEALTH": true,
+        "EMP": true,
+        "MINE": true,
+        "BOUNCY_BULLET": true
+      }
+    },
+    {
+      "Position": [
+        "96.96148",
+        "39.97462"
+      ],
+      "ActivatedPickups": {
+        "HEALTH": true,
+        "EMP": true,
+        "MINE": true,
+        "BOUNCY_BULLET": true
+      }
+    },
+    {
+      "Position": [
+        "96.96148",
+        "59.898476"
+      ],
+      "ActivatedPickups": {
+        "HEALTH": true,
+        "EMP": true,
+        "MINE": true,
+        "BOUNCY_BULLET": true
+      }
+    }
   ]
 }

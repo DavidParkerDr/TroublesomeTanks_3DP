@@ -26,6 +26,7 @@ namespace Tankontroller.GUI
         private bool mColourSet;
 
         private float mSelectionCoolDown;
+        private readonly float SELECTION_COOLDOWN_TIME = 0.2f;
         private float mJoinButtonFlashTimer;
         private bool mShowJoinButton;
 
@@ -61,6 +62,7 @@ namespace Tankontroller.GUI
                 Color.DeepPink,
             };
 
+        // Player Avatar Picker UI 
         public AvatarPicker(Rectangle pRectangle)
         {
             mBoundsRectangle = pRectangle;
@@ -74,7 +76,8 @@ namespace Tankontroller.GUI
             PrepareButtons();
 
             mCentre = new Vector2(mBoundsRectangle.X + mBoundsRectangle.Width / 2, mBoundsRectangle.Y + mBoundsRectangle.Height / 2);
-            mAvatarRadius = 70;
+            float aspectRatioAdjustment = ((float)mBoundsRectangle.Width / (float)mBoundsRectangle.Height) * 6f;
+            mAvatarRadius = (float)mBoundsRectangle.Width / aspectRatioAdjustment;
             mRadius = mBoundsRectangle.Height / 2 - mAvatarRadius;
 
             SetUpAvatarSelection();
@@ -120,13 +123,14 @@ namespace Tankontroller.GUI
             mSelectionRectangles = GetSelectionRectangles(mAvatars.Count);
             UpdateCentreAvatar();
         }
-
+        
+        // Player Avatar UI
         private void UpdateCentreAvatar()
         {
             string name = mAvatarSet ? mCentreAvatar.GetName() : mAvatars[mSelectionIndex].GetName();
 
             Rectangle avatarRect = new Rectangle();
-            float middleAvatarRadius = (HasController() && mColourSet) ? mBoundsRectangle.Height * 0.45f : 100;
+            float middleAvatarRadius = mBoundsRectangle.Height * 0.2f;
             avatarRect.X = (int)(mCentre.X - middleAvatarRadius);
             avatarRect.Y = (int)(mCentre.Y - middleAvatarRadius);
             avatarRect.Width = avatarRect.Height = (int)(middleAvatarRadius * 2);
@@ -136,20 +140,21 @@ namespace Tankontroller.GUI
             mController?.SetColour(color);
         }
 
+        // Player Selection UI Buttons
         private void PrepareButtons()
         {
             float widthRatio = (float)mJoinButtonTexture.Width / mJoinButtonTexture.Height;
-            int height = 200;
+            int height = (int)(mBoundsRectangle.Height * 0.5f);
             int width = (int)(height * widthRatio);
             mAButtonRectangle = new Rectangle(mBoundsRectangle.X + (mBoundsRectangle.Width - width) / 2, mBoundsRectangle.Y + (mBoundsRectangle.Height - height) / 2, width, height);
 
-            height = 60;
+            height = (int)(mBoundsRectangle.Height * 0.1f);
             width = (int)(height * widthRatio);
             mBackButtonRectangle = new Rectangle(mBoundsRectangle.X + (mBoundsRectangle.Width / 16) - width, mBoundsRectangle.Y + (mBoundsRectangle.Height / 8) - height, width, height);
 
-            height = 40;
+            height = (int)(mBoundsRectangle.Height * 0.09f);
             width = (int)(height * widthRatio);
-            mBackTextRectangle = new Rectangle(mBoundsRectangle.X + ((mBoundsRectangle.Width / 16) + 30) - width, mBoundsRectangle.Y + (mBoundsRectangle.Height / 8) - height, width, height / 2);
+            mBackTextRectangle = new Rectangle(mBoundsRectangle.X + ((mBoundsRectangle.Width / 16) + (int)(mBoundsRectangle.Height * 0.08f)) - width, mBoundsRectangle.Y + (mBoundsRectangle.Height / 8) - height, width, height / 2);
 
             mRotateLeftButton = new Rectangle(mBoundsRectangle.X + ((mBoundsRectangle.Width / 10) * 3) - width + 20, mBoundsRectangle.Y + (mBoundsRectangle.Height / 8) - height, width, height);
 
@@ -200,6 +205,7 @@ namespace Tankontroller.GUI
                 mAvatars.Add(avatar);
             }
         }
+
         private void UpdateColorOptions(string pAvatarString)
         {
             int screenWidth = mBoundsRectangle.Width;
@@ -298,7 +304,7 @@ namespace Tankontroller.GUI
                     mSelectionIndex = mSelectionIndex % mSelectionRectangles.Count;
                 }
                 UpdateCentreAvatar();
-                mSelectionCoolDown = 0.2f;
+                mSelectionCoolDown = SELECTION_COOLDOWN_TIME;
             }
         }
 

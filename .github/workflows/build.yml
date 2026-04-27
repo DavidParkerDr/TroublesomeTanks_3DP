@@ -1,0 +1,46 @@
+name: Auto Release MonoGame Project
+
+on:
+  push:
+    branches:
+      - master     # Every push to master triggers a new release
+      - working/resolution
+      - working/game-elements-scaling
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build project
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Publish
+      run: dotnet publish Tankontroller/Tankontroller.csproj -c Release -o build_output
+
+    - name: Zip build output
+      run: powershell Compress-Archive -Path build_output\* -DestinationPath Tankontroller.zip -Force
+
+    # Create or update a release called "latest"
+    - name: Create/Update GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: latest
+        name: Latest Build
+        body: "Automatic build from push to master"
+        draft: false
+        prerelease: false
+        files: Tankontroller.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

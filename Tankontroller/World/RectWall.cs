@@ -1,35 +1,38 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Tankontroller.World.Shapes;
+using Tankontroller.World.WorldObject;
 
 namespace Tankontroller.World
 {
-    public class RectWall
+    public class RectWall : ICollidable
     {
         private static readonly Color COLOUR = DGS.Instance.GetColour("COLOUR_WALLS");
-        public Rectangle Rectangle { get; private set; }
-        private Rectangle m_OutlineRectangle;
-        private Texture2D m_Texture;
 
-        public RectWall(Texture2D pTexture, Rectangle pRectangle)
+        public Transform Transform { get; private set; } = new Transform();
+        public CollisionShape CollisionShape => RectangleShape;
+        public RectangleOrientedShape RectangleShape { get; private set; } = null;
+        private RectangleOrientedShape mOutlineShape = null;
+
+        private Texture2D mTexture;
+
+        public RectWall(Transform pTransform, Vector2 pSize, Texture2D pTexture)
         {
-            Rectangle = pRectangle;
-            m_OutlineRectangle = new Rectangle(pRectangle.X - 2, pRectangle.Y - 2, pRectangle.Width + 4, pRectangle.Height + 4);
-            m_Texture = pTexture;
+            Transform = pTransform;
+            RectangleShape = new RectangleOrientedShape(Transform, pSize);
+            float outlineSize = 4f;
+            mOutlineShape = new(Transform, RectangleShape.Size + new Vector2(outlineSize), RectangleShape.LocalRotation, RectangleShape.LocalOffset);
+            mTexture = pTexture;
         }
 
         public void Draw(SpriteBatch pSpriteBatch)
         {
-            pSpriteBatch.Draw(m_Texture, Rectangle, COLOUR);
+            RectangleShape.Draw(pSpriteBatch, mTexture, COLOUR);
         }
 
         public void DrawOutlines(SpriteBatch pSpriteBatch)
         {
-            pSpriteBatch.Draw(m_Texture, m_OutlineRectangle, Color.Black);
+            mOutlineShape.Draw(pSpriteBatch, mTexture, Color.Black);
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Tankontroller.World.Particles;
+using Tankontroller.World.Shapes;
 
 namespace Tankontroller.World.Bullets
 {
@@ -19,31 +20,24 @@ namespace Tankontroller.World.Bullets
             base.Update(pSeconds);
         }
 
-        public override bool DoCollision(Rectangle pRectangle)
+        public override bool TankCollisionResponse(Tank pTank)
         {
-            Vector2 collisonNormal = GetCollisionNormal(pRectangle);
-            CreateExplosion(-collisonNormal);
+            pTank.TakeDamage();
+            CreateExplosion(Vector2.Normalize(Position - pTank.Transform.Position));
             return true;
         }
 
-        public override bool DoCollision(RectWall pWall)
-        {
-            Vector2 collisonNormal = GetCollisionNormal(pWall.Rectangle);
-            CreateExplosion(collisonNormal);
-            return true;
-        }
-
-        public override bool DoCollision(Tank pTank)
-        {
-            CreateExplosion(Vector2.Normalize(Position - pTank.GetWorldPosition()));
-            return true;
-        }
-
-        public override bool DoCollision(Bullet pBullet)
+        public override bool BulletCollisionResponse(Bullet pBullet)
         {
             Vector2 collisionNormal = Vector2.Normalize(Velocity);
             CreateExplosion(collisionNormal);
             CreateExplosion(-collisionNormal);
+            return true;
+        }
+
+        public override bool WallCollisionResponse(CollisionEvent collisionEvent)
+        {
+            CreateExplosion(collisionEvent.CollisionNormal ?? Vector2.One);
             return true;
         }
 
@@ -57,7 +51,6 @@ namespace Tankontroller.World.Bullets
         {
             return false;
         }
-
     }
 
 }

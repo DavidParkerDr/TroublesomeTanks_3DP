@@ -20,6 +20,7 @@ namespace Tankontroller.World.Particles
         public float TimeTillDead { get; private set; }
         /// <summary>
         /// Initiates all values.
+        /// Initiates all values.
         /// </summary>
         /// <param name="pPosition">Initial position of particle</param>
         /// <param name="pVelocity">Initial velocity of particle</param>
@@ -29,10 +30,12 @@ namespace Tankontroller.World.Particles
         /// <param name="pTimeTillDead">Time until particle will be recycled</param>
         public void Initiate(Vector2 pPosition, Vector2 pVelocity, float pRadius, float pRadiusIncreaseRate, Color pColour, float pTimeTillDead)
         {
+            float scale = Tankontroller.Instance().ScaleFactor();
+
             Position = pPosition;
             Velocity = pVelocity;
-            Radius = pRadius;
-            RadiusIncreaseRate = pRadiusIncreaseRate;
+            Radius = pRadius * scale;
+            RadiusIncreaseRate = pRadiusIncreaseRate * scale;
             Colour = pColour;
             TimeTillDead = pTimeTillDead;
         }
@@ -275,7 +278,7 @@ namespace Tankontroller.World.Particles
             {
                 Vector2 position = m_Point1 + (m_Point2 - m_Point1) * (float)m_Rng.NextDouble();
                 float lifetime = m_Rng.Next(250, 751) * 0.001f;
-                pParticles[i].Initiate(position, Vector2.Zero, 0.5f, m_Rng.Next(5, 15), m_Colours[m_Rng.Next(4)], lifetime);
+                pParticles[i].Initiate(position, Vector2.Zero, 5, m_Rng.Next(5, 15), m_Colours[m_Rng.Next(4)], lifetime);
             }
         }
     }
@@ -309,7 +312,6 @@ namespace Tankontroller.World.Particles
     {
         private Vector2 m_Position;
         private float m_LifeTime;
-        //private float m_VelocityScale;
         private Random m_Rng = new Random();
         private Color[] m_Colours = new Color[2];
 
@@ -364,11 +366,13 @@ namespace Tankontroller.World.Particles
                 if (i <= (pParticles.Length / 2))
                 {
                     velocity = velocity * 40;
+
                     pParticles[i].Initiate(m_Position, velocity, m_Rng.Next(1, 7), m_Rng.Next(15, 25), m_SmokeColours[m_Rng.Next(2)], m_LifeTime);
                 }
                 else
                 {
                     velocity = velocity * 20;
+
                     pParticles[i].Initiate(m_Position, velocity, m_Rng.Next(0, 6), m_Rng.Next(10, 20), m_BlastColours[m_Rng.Next(2)], m_LifeTime + 0.4f);
                 }
 

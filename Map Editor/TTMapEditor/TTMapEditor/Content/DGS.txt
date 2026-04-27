@@ -1,0 +1,6 @@
+// Used to control display settings for the application
+bool IS_FULL_SCREEN = false;
+int SCREENWIDTH = 1920;
+int SCREENHEIGHT = 1080;
+Color COLOUR_BACKGROUND = f0e68c;
+Color COLOUR_WALL = 708090;

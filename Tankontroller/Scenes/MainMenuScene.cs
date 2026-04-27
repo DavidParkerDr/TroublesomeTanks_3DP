@@ -21,10 +21,12 @@ namespace Tankontroller.Scenes
         Rectangle mBackgroundRectangle;
         Rectangle mTitleRectangle;
         Rectangle mControllerInfoRect;
-        private float secondsLeft;
 
         private string defaultMapFile = DEFAULT_MAP_FILE; // Default map file
 
+        // Cooldown timers to prevent the menu selection from being too fast
+        private float mSelectionCooldown = 0.0f;
+        private readonly float SELECTION_COOLDOWN_TIME = 0.2f;
 
         public MainMenuScene()
         {
@@ -57,30 +59,31 @@ namespace Tankontroller.Scenes
             Rectangle buttonRect = new Rectangle(buttonX, buttonY, buttonWidth, buttonHeight);
 
             // Start button
-            Button startGameButton = new Button(startGameButtonTexture, startGameButtonTexturePressed, buttonRect, Color.Red, StartGame);
+            Button startGameButton = new Button(startGameButtonTexture, startGameButtonTexturePressed, buttonRect, Color.White, StartGame);
             startGameButton.Selected = true;
             mButtonList.Add(startGameButton);
 
             // Level Selection Button
             buttonRect.X += (int)(startGameButtonTexture.Width * 1.25f);
-            Button levelSelectionButton = new Button(levelSelectionButtonTexture, levelSelectionButtonTexturePressed, buttonRect, Color.Red, SelectLevel);
+            Button levelSelectionButton = new Button(levelSelectionButtonTexture, levelSelectionButtonTexturePressed, buttonRect, Color.White, SelectLevel);
             levelSelectionButton.Selected = false;
             mButtonList.Add(levelSelectionButton);
 
             // Pickup Scene button
             buttonRect.X += (int)(startGameButtonTexture.Width * 1.25f);
-            Button pickupinfoButton = new Button(pickupinfoButtonTexture, pickupinfoButtonTexturePressed, buttonRect, Color.Red, PickupInfo);
+            Button pickupinfoButton = new Button(pickupinfoButtonTexture, pickupinfoButtonTexturePressed, buttonRect, Color.White, PickupInfo);
             pickupinfoButton.Selected = false;
             mButtonList.Add(pickupinfoButton);
 
             //Makes the exit game button
             buttonRect.X += (int)(startGameButtonTexture.Width * 1.25f);
-            Button exitGameButton = new Button(exitGameButtonTexture, exitGameButtonTexturePressed, buttonRect, Color.Red, ExitGame);
+            Button exitGameButton = new Button(exitGameButtonTexture, exitGameButtonTexturePressed, buttonRect, Color.White, ExitGame);
             exitGameButton.Selected = false;
             mButtonList.Add(exitGameButton);
 
-            secondsLeft = 0.1f;
             mGameInstance.GetSoundManager().ReplaceCurrentMusicInstance("Music/Music_start", true);
+
+            mSelectionCooldown = SELECTION_COOLDOWN_TIME;
         }
 
         public void SetDefaultMapFile(string mapFile)
@@ -113,6 +116,8 @@ namespace Tankontroller.Scenes
             Escape();
             mGameInstance.GetControllerManager().DetectControllers();
 
+            mSelectionCooldown -= pSeconds;
+
             foreach (IController controller in mGameInstance.GetControllerManager().GetControllers())
             {
                 controller.UpdateController();
@@ -122,13 +127,15 @@ namespace Tankontroller.Scenes
                     continue; // If enabled in DSG skip any controller that isn't a keyboard
                 }
 
-                if (controller.IsPressed(Control.TURRET_LEFT) && !controller.WasPressed(Control.TURRET_LEFT))
+                if (controller.IsPressed(Control.TURRET_LEFT) && mSelectionCooldown <= 0.0f)
                 {
                     mButtonList.SelectPreviousButton();
+                    mSelectionCooldown = SELECTION_COOLDOWN_TIME;
                 }
-                if (controller.IsPressed(Control.TURRET_RIGHT) && !controller.WasPressed(Control.TURRET_RIGHT))
+                if (controller.IsPressed(Control.TURRET_RIGHT) && mSelectionCooldown <= 0.0f)
                 {
                     mButtonList.SelectNextButton();
+                    mSelectionCooldown = SELECTION_COOLDOWN_TIME;
                 }
 
                 if (controller.IsPressed(Control.FIRE) && !controller.WasPressed(Control.FIRE) ||

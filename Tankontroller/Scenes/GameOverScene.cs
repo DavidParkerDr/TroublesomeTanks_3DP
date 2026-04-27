@@ -118,11 +118,11 @@ namespace Tankontroller.Scenes
             {
                 if (i == mWinner)
                 {
-                    mPlayers[i].GUI.DrawAvatar(spriteBatch, Tank.MAX_HEALTH);
+                    mPlayers[i].GUI.DrawAvatar(spriteBatch, Tank.MAX_HEALTH, TankStates.ALIVE);
                     mPlayers[i].GUI.DrawHealthBar(spriteBatch, mPlayers[i].Tank.Health());
                 }
                 else { 
-                mPlayers[i].GUI.DrawAvatar(spriteBatch, 1);
+                mPlayers[i].GUI.DrawAvatar(spriteBatch, 1, TankStates.ALIVE);
                 mPlayers[i].GUI.DrawHealthBar(spriteBatch, mPlayers[i].Tank.Health());
                 }
             }

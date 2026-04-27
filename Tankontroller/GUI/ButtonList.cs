@@ -63,16 +63,34 @@ namespace Tankontroller.GUI
             mButtons[currentSelectedButtonIndex].PressButton();
         }
 
+        public void TurnOffButton(int index)
+        {
+            mButtons[index].OnOffState = false;
+        }
+
         public void Draw(SpriteBatch pSpriteBatch)
         {
             foreach (Button button in mButtons)
             {
-                Color buttonColour = Color.White;
-                if (button.Selected)
-                    pSpriteBatch.Draw(button.TexturePressed, button.Rect, buttonColour);
-                else
-                    pSpriteBatch.Draw(button.Texture, button.Rect, buttonColour);
+                if (button.Selected && !button.OnOffState)
+                    pSpriteBatch.Draw(button.TextureHighlighted, button.Rect, button.SelectedColour);
+                else if (!button.Selected && !button.OnOffState)
+                    pSpriteBatch.Draw(button.Texture, button.Rect, button.SelectedColour);
+                else if (button.Selected && button.OnOffState)
+                    pSpriteBatch.Draw(button.TextureOnStateHighlighted, button.Rect, button.SelectedColour);
+                else if (!button.Selected && button.OnOffState)
+                    pSpriteBatch.Draw(button.TextureOnState, button.Rect, button.SelectedColour);
             }
+        }
+
+        public bool IsButtonOnOff()
+        {
+            return mButtons[currentSelectedButtonIndex].OnOffState;
+        }
+
+        public int GetSelectedButtonIndex()
+        {
+            return currentSelectedButtonIndex;
         }
     }
 }

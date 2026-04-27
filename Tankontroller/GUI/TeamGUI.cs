@@ -43,6 +43,14 @@ namespace Tankontroller.GUI
             int jackIcons_yValueOffset = powerBar_yValueOffset + (int)(powerBarHeight * 1.01f) - powerBarWidth;
             int labels_yValueOffset = powerBar_yValueOffset + (int)(powerBarWidth * 1.01f);
 
+            //y offset for 32:9 aspect ratio
+            if ((float)screenWidth / (float)screenHeight == 32f / 9f)
+            {
+                powerBar_yValueOffset -= screenHeight / 100 * 3;
+                jackIcons_yValueOffset -= screenHeight / 100 * 3;
+                labels_yValueOffset -= screenHeight / 100 * 8;
+            }
+
             bool isOnLeft = true;
             int xValue = screenWidth / 80 * 3;
             int xIncrement = Convert.ToInt32(powerBarWidth * 1.2);
@@ -90,22 +98,35 @@ namespace Tankontroller.GUI
             m_Avatar.Reposition(pRectangle);
         }
 
-        public void DrawAvatar(SpriteBatch pSpriteBatch, int pHealth)
+        public void DrawAvatar(SpriteBatch pSpriteBatch, int pHealth, TankStates pState)
         {
-            float avatarIndex = Tank.MAX_HEALTH / 2.0f;
-            int roundedUp = (int)Math.Ceiling(avatarIndex); // rounds up
-            //m_Avatar.Draw(pSpriteBatch, pHealth > 0, avatarIndex);
-            if (pHealth == 1)
-            {
-                m_Avatar.Draw(pSpriteBatch, pHealth > 0, 2);
-            }
-            else if (pHealth <= roundedUp) //below half but above 1 
-            {
-                m_Avatar.Draw(pSpriteBatch, pHealth > 0, 1);
-            }
-            else if (pHealth > roundedUp) //above half
-            {
-                m_Avatar.Draw(pSpriteBatch, pHealth > 0, 0);
+            switch (pState)
+            { 
+            case TankStates.ALIVE:
+                    float avatarIndex = Tank.MAX_HEALTH / 2.0f;
+                    int roundedUp = (int)Math.Ceiling(avatarIndex); // rounds up                                                                   
+                    m_Avatar.SetColour(m_Color);
+                    if (pHealth == 1)
+                    {
+                        m_Avatar.Draw(pSpriteBatch, pHealth > 0, 2);
+                    }
+                    else if (pHealth <= roundedUp) //below half but above 1 
+                    {
+                        m_Avatar.Draw(pSpriteBatch, pHealth > 0, 1);
+                    }
+                    else if (pHealth > roundedUp) //above half
+                    {
+                        m_Avatar.Draw(pSpriteBatch, pHealth > 0, 0);
+                    }
+                    break;
+            case TankStates.DEFEATED:
+                    m_Avatar.SetColour(Color.Red); // Draws the character avatar on the UI red when defeated
+                    m_Avatar.Draw(pSpriteBatch, false, 2);
+                    break;
+            case TankStates.DESTROYED:
+                    m_Avatar.SetColour(Color.Gray); // Draws the character avatar on the UI gray when destroyed
+                    m_Avatar.Draw(pSpriteBatch, false, 2);
+                    break;
             }
         }
 
@@ -143,9 +164,9 @@ namespace Tankontroller.GUI
             pBatch.Draw(pTexture, rectangle, pColour);
         }
 
-        public void Draw(SpriteBatch pSpriteBatch, int pHealth, BulletType pBulletType)
+        public void Draw(SpriteBatch pSpriteBatch, int pHealth, BulletType pBulletType, TankStates state)
         {
-            DrawAvatar(pSpriteBatch, pHealth);
+            DrawAvatar(pSpriteBatch, pHealth, state);
             DrawHealthBar(pSpriteBatch, pHealth);
             for (int port = 0; port < 7; port++)
             {

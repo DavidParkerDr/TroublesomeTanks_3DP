@@ -2,7 +2,10 @@
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using Tankontroller.Managers;
+using Tankontroller.Utilities;
 using Tankontroller.World.Particles;
+using Tankontroller.World.Shapes;
 
 namespace Tankontroller.World.Bullets
 {
@@ -20,6 +23,7 @@ namespace Tankontroller.World.Bullets
             EMPTextures.Add(EMPTexture2);
             EMPTextures.Add(EMPTexture3);
             EMPTextures.Add(EMPTexture4);
+            CircleShape.Radius *= 3.0f;
         }
         private float Rotation = 0.0f;
 
@@ -28,35 +32,31 @@ namespace Tankontroller.World.Bullets
             Random rand = new Random();
             EMPBlastInitPolicy explosion = new EMPBlastInitPolicy(Position, 0.5f);
             ParticleManager.Instance().InitialiseParticles(explosion, 1);
-            //Rotation += 0.01f;
             LifeTime -= pSeconds;
             base.Update(pSeconds);
         }
 
-        public override bool DoCollision(Rectangle pRectangle)
-        {
-            Vector2 collisonNormal = GetCollisionNormal(pRectangle);
-            Velocity = Vector2.Reflect(Velocity, collisonNormal);
-            return false;
-        }
-
-        public override bool DoCollision(RectWall pWall)
-        {
-            Vector2 collisonNormal = GetCollisionNormal(pWall.Rectangle);
-            Velocity = Vector2.Reflect(Velocity, collisonNormal);
-            return false;
-        }
-
-        public override bool DoCollision(Tank pTank)
+        public override bool TankCollisionResponse(Tank pTank)
         {
             EMPBlastInitPolicy explosion = new EMPBlastInitPolicy(Position, 6.5f);
             ParticleManager.Instance().InitialiseParticles(explosion, 200);
             return true;
         }
 
-        public override bool DoCollision(Bullet pBullet)
+        public override bool BulletCollisionResponse(Bullet pBullet)
         {
             Vector2 collisionNormal = Vector2.Normalize(Velocity);
+            return false;
+        }
+
+        public override bool WallCollisionResponse(CollisionEvent collisionEvent)
+        {
+            Vector2 collisionNormal = collisionEvent.CollisionNormal ?? Vector2.One;
+            // Only reflect if the bullet is moving towards the wall
+            if (Vector2.Dot(Velocity, collisionNormal) < 0)
+            {
+                Velocity = Vector2.Reflect(Velocity, collisionNormal);
+            }
             return false;
         }
 
@@ -67,14 +67,20 @@ namespace Tankontroller.World.Bullets
 
         public override void Draw(SpriteBatch pBatch, Texture2D pTexture)
         {
-            Particle.DrawCircle(pBatch, pTexture, (int)Radius * 3 + 2 * Particle.EDGE_THICKNESS, Position, Color.Black);
-            Particle.DrawCircle(pBatch, pTexture, (int)Radius * 3, Position, Colour);
+            Particle.DrawCircle(pBatch, pTexture, (int)Radius + 2 * Particle.EDGE_THICKNESS, Position, Color.Black);
+            Particle.DrawCircle(pBatch, pTexture, (int)Radius, Position, Colour);
             int rand = new Random().Next(0, 20);
             if (rand == 0)
             {
                index = new Random().Next(0, 4);
             }
             pBatch.Draw(EMPTextures[index], Position, null, Color.White, Rotation, new Vector2(EMPTextures[index].Width / 2, EMPTextures[index].Height / 2), Radius * 0.02f, SpriteEffects.None, 0.0f);
+
+            // Draw collision shape if enabled in DGS
+            if (CollisionManager.DRAW_COLLISION_SHAPES)
+            {
+                DrawUtilities.DrawCircle(pBatch, Position, Radius, Color.DodgerBlue);
+            }
         }
     }
 }

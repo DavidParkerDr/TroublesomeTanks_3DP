@@ -1,5 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
+using Tankontroller.Controller;
 
 namespace Tankontroller.World.Particles
 {
@@ -20,6 +22,7 @@ namespace Tankontroller.World.Particles
     {
         private static readonly Texture2D m_Texture = Tankontroller.Instance().CM().Load<Texture2D>("track");
         private static readonly TrackSystem m_Instance = new TrackSystem();
+        private static readonly int EDGE_THICKNESS = DGS.Instance.GetInt("PARTICLE_EDGE_THICKNESS");
 
         private Track[] m_Tracks;
         private const int MAX_TRACKS = 250;
@@ -58,9 +61,29 @@ namespace Tankontroller.World.Particles
 
         public void Draw(SpriteBatch pBatch)
         {
+            Vector2 origin = new Vector2((m_Texture.Width / 2f), (m_Texture.Height / 2f));
+            float scale = Tankontroller.Instance().ScaleFactor();
+
             for (int i = 0; i < MAX_TRACKS; i++)
             {
-                pBatch.Draw(m_Texture, m_Tracks[i].Position, null, m_Tracks[i].Colour, m_Tracks[i].Rotation, new Vector2(m_Texture.Width / 2, m_Texture.Height / 2), 1f, SpriteEffects.None, 0.0f);
+                // Round positions to avoid sub-pixel sampling differences
+                Vector2 basePos = new Vector2((float)Math.Round(m_Tracks[i].Position.X), (float)Math.Round(m_Tracks[i].Position.Y));
+
+                // Draw outline by rendering the texture at pixel offsets around the base position.
+                // This produces a crisp outline that lines up exactly with the foreground.
+                for (int ox = -EDGE_THICKNESS; ox <= EDGE_THICKNESS; ox++)
+                {
+                    for (int oy = -EDGE_THICKNESS; oy <= EDGE_THICKNESS; oy++)
+                    {
+                        // skip the center pixel where the foreground will be drawn
+                        if (ox == 0 && oy == 0) continue;
+
+                        pBatch.Draw(m_Texture, basePos + new Vector2(ox, oy), null, Color.Black, m_Tracks[i].Rotation, origin, scale, SpriteEffects.None, 0.0f);
+                    }
+                }
+
+                // Draw the foreground (main) track
+                pBatch.Draw(m_Texture, basePos, null, m_Tracks[i].Colour, m_Tracks[i].Rotation, origin, scale, SpriteEffects.None,0.0f);
             }
         }
     }

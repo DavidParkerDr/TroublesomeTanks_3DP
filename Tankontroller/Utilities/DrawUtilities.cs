@@ -12,10 +12,12 @@ namespace Tankontroller.Utilities
         private static Texture2D mCircleTexture = null;
         private static Texture2D mRingTexture = null;
         private static Texture2D mPixelTexture = null;
+        private static Texture2D mCircleMaskTexture = null;
 
         // Default parameters
         private const int DEFAULT_CIRCLE_RADIUS = 256;
         private const int DEFAULT_RING_THICKNESS = 128;
+        private const int DEFAULT_MASK_SIZE = 256;
 
         // -----------------------------------------------------------------------------------------
 
@@ -168,5 +170,57 @@ namespace Tankontroller.Utilities
             pixelTexture.SetData(new[] { Color.White });
             return pixelTexture;
         }
+
+        #region Circle Mask (Death Zone)
+
+        /// <summary>
+        /// Generate an inverted circle mask texture - opaque outside, transparent inside circle.
+        /// Perfect for death zone effects.
+        /// </summary>
+        /// <returns> Generated circle mask texture with transparent center </returns>
+        public static Texture2D CreateInvertedCircleMask(GraphicsDevice pGraphicsDevice, int pSize, float pScreenScale = 1f)
+        {
+            Texture2D maskTexture = new(pGraphicsDevice, pSize, pSize);
+            Color[] colorData = new Color[pSize * pSize];
+            float radius = pSize / 2f;
+            Vector2 center = new(radius, radius);
+
+            for (int y = 0; y < pSize; y++)
+            {
+                for (int x = 0; x < pSize; x++)
+                {
+                    Vector2 point = new(x, y);
+                    float distanceFromCenter = Vector2.Distance(point, center);
+
+                    // Inverted: 0 alpha at center, 1 alpha at edges
+                    // Add antialiasing near the edge
+                    float alpha = MathHelper.Clamp((distanceFromCenter - (radius / pScreenScale) + 2f) / 2f, 0f, 1f);
+                    // Alternative sharper edge without antialiasing:
+                    alpha = distanceFromCenter > (radius / pScreenScale) ? 1f : 0f;
+
+                    // Premultiplied alpha
+                    colorData[y * pSize + x] = new Color(alpha, alpha, alpha, alpha);
+                }
+            }
+
+            maskTexture.SetData(colorData);
+            return maskTexture;
+        }
+
+        /// <summary>
+        /// Draw a closing iris/death zone effect by drawing an inverted circle mask that scales.
+        /// The center is transparent (safe zone) and edges are opaque (death zone).
+        /// </summary>
+        public static void DrawDeathZone(SpriteBatch pSpriteBatch, Vector2 pSafeZoneCenter, float pSafeZoneRadius, Color pTint, float pScreenScale)
+        {
+            // Generate the mask texture if it doesn't exist
+            mCircleMaskTexture ??= CreateInvertedCircleMask(pSpriteBatch.GraphicsDevice, DEFAULT_MASK_SIZE, pScreenScale);
+
+            // Scale the mask to cover the entire screen with the hole at the safe zone
+            DrawCircle(pSpriteBatch, mCircleMaskTexture, pSafeZoneCenter, pSafeZoneRadius * pScreenScale, pTint);
+        }
+
+        #endregion Circle Mask (Death Zone)
+
     }
 }

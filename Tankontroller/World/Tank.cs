@@ -10,6 +10,7 @@ using Tankontroller.Managers;
 using Tankontroller.Utilities;
 using Tankontroller.World.Bullets;
 using Tankontroller.World.Particles;
+using Tankontroller.World.Gameplay; // Add this using directive
 using Tankontroller.World.Shapes;
 using Tankontroller.World.WorldObject;
 
@@ -31,7 +32,7 @@ public enum TankStates
 
 namespace Tankontroller.World
 {
-    public class Tank : ICollidable
+    public class Tank : ICollidable, IDeathRingTarget
     {
         #region Variables & Constructors
 
@@ -151,6 +152,13 @@ namespace Tankontroller.World
                     pCorners[i].Y = temp.Y;
                 }
             }
+        }
+
+        public Vector2 GetWorldPosition()
+        {
+            Matrix localTransformation = Matrix.CreateRotationZ(Transform.Rotation) * Matrix.CreateTranslation(new Vector3(Transform.Position.X,Transform.Position.Y,0));
+            Vector3 v = localTransformation.Translation;
+            return new Vector2(v.X, v.Y);
         }
 
         #endregion
@@ -547,6 +555,8 @@ namespace Tankontroller.World
             DustInitialisationPolicy dust = new DustInitialisationPolicy(rightTopCorner, rightBottomCorner);
             ParticleManager.Instance().InitialiseParticles(dust, 4);
         }
+
+
 
         #endregion
     }
